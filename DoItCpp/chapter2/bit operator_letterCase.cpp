@@ -1,9 +1,11 @@
+/*
+ * 비트 연산자를 이용한 대소문자 변환
+ */
 #include <iostream>
 #include <windows.h>
 
 int main()
 {
-
     char c1 = 'A';
     char c2 = 'a';
     

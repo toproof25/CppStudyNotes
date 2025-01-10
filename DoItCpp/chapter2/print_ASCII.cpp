@@ -1,4 +1,8 @@
-﻿#include <iostream>
+﻿/*
+ * 아스키 코드 출력
+ */
+
+#include <iostream>
 #include <windows.h>
 
 int main() {

@@ -1,3 +1,8 @@
+/*
+ * C++ 데이터 자료형
+ */
+
+
 #include <iostream>
 #include <windows.h>
 #include <string>
@@ -6,6 +11,7 @@
 
 int main()
 {
+
     // 정수형 데이터 타입
     char character = 'A';
     short short_number = 32767;

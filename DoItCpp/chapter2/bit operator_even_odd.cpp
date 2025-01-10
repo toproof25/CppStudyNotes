@@ -1,3 +1,6 @@
+/*
+ * 비트 연산자를 이용한 홀수 짝수 구분
+ */
 #include <iostream>
 #include <windows.h>
 

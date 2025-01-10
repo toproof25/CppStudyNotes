@@ -1,8 +1,13 @@
+/*
+ * 기본 C++의 입력과 출력
+ */
+
 #include <iostream>  // input, output 기능을 가진 iostream 헤더파일
 #include <windows.h> // system 함수를 사용하기 위한 헤더파일 - cmd창이 바로 종료되지 않도록
 
 int main() 
 {
+
   int number; 
 
   // std -> 표준 라이브러리의 namespace로 standard의 약자
