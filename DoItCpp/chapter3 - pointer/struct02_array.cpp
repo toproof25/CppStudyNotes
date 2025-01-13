@@ -1,14 +1,22 @@
 /*
-* 구조체 배열 선언과 사용
+* 구조체 타입 배열 선언과 사용
 */
 #include <iostream>
 #include <windows.h>
+#include <string>
 
 struct Position
 {
+    // 좌표
     double x = 0.0;
     double y = 1.0;
     double z = 0.0;
+
+    // 좌표 출력
+    void display(const std::string &name)
+    {
+        std::cout << name << " x, y, z : (" << x << ", " << y << ", " << z << ")" << std::endl;
+    }   
 };
 
 // 구조체 포인터와 좌표를 받아서 값을 변경 - 원본 구조체의 값을 바꾸기 위해 포인터로 받아옴
@@ -48,7 +56,7 @@ int main()
     int count = 0;
     for(Position &pos : target)
     {
-        std::cout << "target[" << count++ << "]의 x, y, z : (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+        pos.display("target[" + std::to_string(count++) + "]");
     }
     std::cout << "\n\n";
 
@@ -61,7 +69,7 @@ int main()
     }
     for(Position &pos : target)
     {
-        std::cout << "target[" << count++ << "]의 x, y, z : (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+        pos.display("target[" + std::to_string(count++) + "]");
     }
     std::cout << "\n\n";
 
@@ -74,7 +82,7 @@ int main()
     }
     for(Position &pos : target)
     {
-        std::cout << "target[" << count++ << "]의 x, y, z : (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+        pos.display("target[" + std::to_string(count++) + "]");
     }
     std::cout << "\n\n";
 
