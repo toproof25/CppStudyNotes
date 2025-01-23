@@ -50,6 +50,7 @@ private:
   int &ref_x;
   int *p_y;
   static int static_number;
+  static const int const_static_number;
 };
 
 // Man 클래스에 선언된 정적 변수를 외부 전역 변수로 초기화
