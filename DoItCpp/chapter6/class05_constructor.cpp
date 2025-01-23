@@ -37,6 +37,7 @@ public:
     std::cout << "location(x, y) : " << location[0] << ", " << location[1] << std::endl;
     std::cout << "number : " << number << std::endl;
     std::cout << "ref_x : " << ref_x << std::endl;
+    std::cout << "static_number : " << static_number << std::endl;
   }
 
   void print() override { std::cout << "[남자]입니다" << std::endl; } 
