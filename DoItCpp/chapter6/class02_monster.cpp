@@ -30,7 +30,7 @@ class player : public character {
 //기본 Monster 클래스
 class monster {
   public:
-    monster() {};
+    monster() { cout << "몬스터입니다\n"; };
     void get_damage(int _damage) {};
     void attack(player target_player) {};
     void attack_special(player target_player);
@@ -44,6 +44,8 @@ void monster::attack_special(player target_player) {
 //몬스터 A는 기본 Monster 클래스로부터 상속
 class monster_a : public monster, character {
   public:
+    monster_a() { cout << "저는 몬스터A 입니다" << endl; };
+
     //상속받은 함수 오버라이딩 
     void attack_special(player target_player);
 };
@@ -78,13 +80,19 @@ void monster_c::attack_special(player target_player) {
 }
 
 int main() {
+  cout << "플레이어 생성\n";
   player player_1;
 
+  cout << "\n몬스터 a 생성\n";
   monster_a forest_monster;
+  
+  cout << "\n몬스터 b 생성\n";
   monster_b tutorial_monster;
+  
+  cout << "\n몬스터 c 생성\n";
   monster_c boss_monster;
 
-  cout << "몬스터 총 공격" << endl;
+  cout << "\n몬스터 총 공격" << endl;
   tutorial_monster.attack_special(player_1);
   forest_monster.attack_special(player_1);
   boss_monster.attack_special(player_1);
