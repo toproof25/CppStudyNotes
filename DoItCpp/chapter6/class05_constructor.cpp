@@ -1,5 +1,7 @@
 /*
-* 가상함수 오버라이드 
+* 멤버 변수 초기화 방법
+직접 초기화
+복사 초기화
 */
 #include <iostream>
 #include <windows.h>
