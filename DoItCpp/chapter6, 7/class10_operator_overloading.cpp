@@ -10,6 +10,9 @@ class position
   public:
     position(int x=0, int y=0, int z=0): x(x), y(y), z(z) {};
     position operator+(position &operand);
+    position operator-(position &operand);
+    position operator*(position &operand);
+    position operator/(position &operand);
     void print_position();
 
   private:
@@ -35,6 +38,36 @@ position position::operator+(position &operand)
   return p;
 }
 
+position position::operator-(position &operand)
+{
+  int x = this->x - operand.x;
+  int y = this->y - operand.y;
+  int z = this->z - operand.z;
+  
+  position p(x, y, z);
+  return p;
+}
+
+position position::operator*(position &operand)
+{
+  int x = this->x * operand.x;
+  int y = this->y * operand.y;
+  int z = this->z * operand.z;
+  
+  position p(x, y, z);
+  return p;
+}
+position position::operator/(position &operand)
+{
+  int x = this->x / operand.x;
+  int y = this->y / operand.y;
+  int z = this->z / operand.z;
+  
+  position p(x, y, z);
+  return p;
+}
+
+
 
 int main()
 {
@@ -55,6 +88,22 @@ int main()
   position p4 = p2.operator+(p3);
   std::cout << "p2.operator+(p3)의 좌표" << std::endl;
   p4.print_position();
+
+
+  // 빼기
+  position p5 = p4 - p2;
+  std::cout << "p4 - p2의 좌표" << std::endl;
+  p5.print_position();
+
+  // 곱하기
+  position p6 = p1 * p3;
+  std::cout << "p1 * p3의 좌표" << std::endl;
+  p6.print_position();
+
+  // 나누기
+  position p7 = p6 / p1;
+  std::cout << "p6 / p1의 좌표" << std::endl;
+  p7.print_position();
 
 
   std::cout << "\n\n";
