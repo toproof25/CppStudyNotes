@@ -1,5 +1,5 @@
 /*
-* 프렌드 클래스 사용
+* 프렌드 클래스, 함수 사용
 */
 #include <iostream>
 #include <windows.h>
@@ -9,12 +9,14 @@ class sangok
 {
   public:
     sangok(int age, std::string number): age(age), number(number) {};
-    friend class oksang;
 
   private:
     int age;
     std::string number;
     std::string hobby = "러닝/게임/독서 등";
+
+    // 프렌드 클래스 선언 - oksang객체에서는 sangok객체 접근 지정자를 무시할 수 있다
+    friend class oksang;
 };
 
 class minsu
@@ -26,7 +28,17 @@ class minsu
     int age;
     std::string number;
     std::string hobby = "산책하기";
+
+    // 프렌드 함수 - 전역 함수 minsu_hobby에서는 minsu의 접근 지정자를 무시할 수 있다
+    friend void minsu_hobby(const minsu &minsu);
+
 };
+
+void minsu_hobby(const minsu &minsu)
+{
+  std::cout << "minsu의 취미는 " << minsu.hobby << std::endl;
+}
+
 
 class oksang
 {
@@ -58,6 +70,7 @@ int main()
 
   oksang.call_sangok(sangok);
   oksang.call_minsu(minsu);
+  minsu_hobby(minsu);
 
   std::cout << "\n\n";
   system("pause");
