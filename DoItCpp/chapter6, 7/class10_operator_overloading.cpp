@@ -105,6 +105,11 @@ int main()
   std::cout << "p6 / p1의 좌표" << std::endl;
   p7.print_position();
 
+  position p8 = p1 + p2 + p3 + p4 + p5 + p6 + p7;
+  std::cout << "p1 + p2 + p3 + p4 + p5 + p6 + p7의 좌표" << std::endl;
+  p8.print_position();
+
+
 
   std::cout << "\n\n";
   system("pause");
