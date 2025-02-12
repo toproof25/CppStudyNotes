@@ -59,6 +59,7 @@ void monster_a::attack_special(player target_player) {
 // 상속이 아닌 컴포지션을 이용한 몬스터 클래스
 class monster_composition {
   private:
+    // 멤버 변수로 객체를 사용
     monster monster_base;
     character character_base;
 
@@ -66,11 +67,12 @@ class monster_composition {
     monster_composition() { cout << "저는 monster_composition 입니다" << endl; };
     ~monster_composition() {};
 
+    // 상속과 달리 오버라이딩이 아닌 델리게이션으로 사용
     void attack(player target_player);
     void attack_special(player target_player);
 };
 
-// 컴포지션을 이용하여 기존 일반 공격을 실행
+// 컴포지션 위임 개념으로 기존 일반 공격을 실행
 void monster_composition::attack(player target_player) {
   monster_base.attack(target_player);
 }
@@ -100,7 +102,7 @@ class monster_aggregation {
   void attack_special(player target_player);
 };
 
-// 컴포지션을 이용하여 기존 일반 공격을 실행
+// 어그리게이션 이용하여 기존 일반 공격을 실행
 void monster_aggregation::attack(player target_player) {
   monster_base.attack(target_player);
 }
