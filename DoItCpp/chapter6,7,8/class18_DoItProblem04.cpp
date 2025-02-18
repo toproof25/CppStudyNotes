@@ -11,6 +11,26 @@
 #include <vector>
 using namespace std;
 
+// 상태 관리 상수
+enum Status {
+  CaptainSelect,       // 0 기장 선택
+  CaptainAdd,          // 1 기장 추가
+  PlaneSelect,         // 2 비행기 선택
+  PlaneAdd,            // 3 비행기 추가
+  ShowCurrentPlane,    // 4 현재 비행기 정보 출력
+  ShowFightJetCount    // 5 총 전투기 수 확인
+};
+
+enum CurrentPlaneManagement {
+  Refuel = 6,          // 6 기름 채우기
+  TakeOff,             // 7 이륙하기
+  Land,                // 8 착륙하기
+  IncreaseAltitude,    // 9 고도 상승
+  DecreaseAltitude,    // 10 고도 하강
+  EmergencyLanding     // 11 불시착
+};
+
+
 // 비행기 엔진 클래스 - 컴포지션
 class Engine
 {
@@ -64,7 +84,7 @@ void Cockpit::EmergencyLanding()
 class Captain
 {
   public:
-    Captain(string name) : name(name) {}
+    Captain(string name="") : name(name) {}
     void PrintCaptainName()
     {
       cout << "안녕하세요. " << name << " 기장 입니다." << endl; 
@@ -79,10 +99,11 @@ class Captain
 class Airplane
 {
   public:
-    Airplane(string name, int capacity) : 
+    Airplane(string name="", int capacity=0) : 
     airplane_name(name), 
     capacity(capacity), 
-    aviation_fuel(0.0) 
+    aviation_fuel(0.0),
+    captain(nullptr)
     {}
 
     virtual void AirplaneInformation() =0;
@@ -91,7 +112,10 @@ class Airplane
     void ChangeCaptain(Captain *captain) 
     { 
       this->captain = captain;
-      cout << "기장이 " << captain->GetName() << "으로 변경됐습니다" << endl;
+      if (this->captain != nullptr)
+      {
+        cout << "기장이 " << captain->GetName() << "으로 변경됐습니다" << endl;
+      }
     }
 
   protected:
@@ -104,7 +128,9 @@ class Airplane
 class FighterJet : public Airplane
 {
   public:
-    FighterJet(string name, int capacity) : Airplane(name, capacity), engine(1000) {}
+    // 생성자, 소멸자에서 전투기 수 변수의 값을 조절
+    FighterJet(string name, int capacity) : Airplane(name, capacity), engine(1000) { fighter_jet_count++; }
+    ~FighterJet() { fighter_jet_count--; }
 
     virtual void AirplaneInformation() override
     {
@@ -112,7 +138,10 @@ class FighterJet : public Airplane
       cout << "연료 : [" << this->aviation_fuel <<"]" << endl;
       cout << "수용인원 : [" << this->capacity <<"]" << endl;
       cout << "마력 : [" << this->engine.GetMaxPower() <<"]" << endl;
-      captain->PrintCaptainName();
+      if (captain != nullptr)
+      {
+        captain->PrintCaptainName();
+      }
       cout << endl;
     }
     virtual void RefuelAirplane(int fuel) override
@@ -169,14 +198,17 @@ class FighterJet : public Airplane
       cockpit.EmergencyLanding();
     }
 
+    // 정적 멤버 변수 활용 - 전투기 수 
+    static int fighter_jet_count;
 
+    // 컴포지션 활용
     Engine engine;
     Cockpit cockpit;
 };
 class Helicopter : public Airplane
 {
   public:
-    Helicopter(string name, int capacity) : Airplane(name, capacity), engine(1000) {}
+    Helicopter(string name, int capacity) : Airplane(name, capacity), engine(5555) {}
 
     virtual void AirplaneInformation() override
     {
@@ -184,7 +216,10 @@ class Helicopter : public Airplane
       cout << "연료 : [" << this->aviation_fuel <<"]" << endl;
       cout << "수용인원 : [" << this->capacity <<"]" << endl;
       cout << "마력 : [" << this->engine.GetMaxPower() <<"]" << endl;
-      captain->PrintCaptainName();
+      if (captain != nullptr)
+      {
+        captain->PrintCaptainName();
+      }
       cout << endl;
     }
     virtual void RefuelAirplane(int fuel) override
@@ -241,23 +276,23 @@ class Helicopter : public Airplane
       cockpit.EmergencyLanding();
     }
 
-    Engine engine;
-    Cockpit cockpit;
+    // 컴포지션 활용
+    Engine engine;   // 기체 엔진
+    Cockpit cockpit; // 조종석
 };
 
+// 정적 멤버 변수는 전역에서 정의 - 초기 전투기 수 1개
+int FighterJet::fighter_jet_count = 0;
 
-// 상태 관리 상수
-enum Status {
-  CaptainSelect,      // 0 기장 선택
-  CaptainAdd,         // 1 기장 추가
-  PlaneSelect,        // 2 비행기 선택
-  PlaneAdd,           // 3 비행기 추가
-  ShowCurrentPlane    // 4 현재 비행기 정보 출력
-};
 
 // 기장 선택
-int ChoiceCaptain(vector<Captain> &captains)
+Captain* ChoiceCaptain(vector<Captain> &captains)
 {
+  if (captains.size() == 0)
+  {
+    return nullptr;
+  }
+
   int choice;
   cout << "기장을 선택하세요" << endl;
   for (int i=0; i<captains.size(); ++i)
@@ -267,12 +302,17 @@ int ChoiceCaptain(vector<Captain> &captains)
   cout << "시작 기장 선택 >>> ";
   cin >> choice;
   cout << endl;
-  return choice-1;
+  return &captains[choice-1];
 }
 
 // 비행기 선택
-int ChoiceAirplanes(vector<Airplane*> airplanes)
+Airplane* ChoiceAirplanes(vector<Airplane*> &airplanes)
 {
+  if (airplanes.size() == 0)
+  {
+    return nullptr;
+  }
+
   int choice;
   cout << "비행기를 선택하세요" << endl;
   for (int i=0; i<airplanes.size(); ++i)
@@ -282,7 +322,7 @@ int ChoiceAirplanes(vector<Airplane*> airplanes)
   cout << "시작 비행기 선택 >>> ";
   cin >> choice;
   cout << endl;
-  return choice-1;
+  return airplanes[choice-1];
 }
 
 
@@ -291,8 +331,8 @@ int main()
   vector<Airplane*> airplanes = {new FighterJet("F-99", 1), new Helicopter("Helicopter1", 4)};
   Airplane *current_airplane = airplanes[0];
 
-  vector<Captain> captains = {Captain("김철수"), Captain("홍길동")};
-  int choice = CaptainSelect;
+  vector<Captain> captains;
+  int choice = -1;
   
   cout << "***비행기 관리 시뮬레이션***" << endl;
 
@@ -303,9 +343,16 @@ int main()
       case CaptainSelect:
       {
         cout << "****************[기장 선택]****************" << endl;
-        int captain_number = ChoiceCaptain(captains);
-        current_airplane->ChangeCaptain(&captains[captain_number]);
-        cout << "****************기장 선택 완료****************" << endl;
+        Captain *captain_pointer = ChoiceCaptain(captains);
+        if (captain_pointer == nullptr)
+        {
+          cout << "****************기장을 먼저 추가해주세요****************" << endl;
+        }
+        else
+        {
+          current_airplane->ChangeCaptain(captain_pointer);
+          cout << "****************기장 선택 완료****************" << endl;
+        }
         break;
       }
 
@@ -313,7 +360,7 @@ int main()
       {
         cout << "****************[기장 추가]****************" << endl;
         cout << "기장 이름을 작성하시오 >>> ";
-        string captain_name = "";
+        string captain_name;
         cin >> captain_name;
         captains.push_back(Captain(captain_name));
         cout << "****************기장 추가 완료****************" << endl;
@@ -322,19 +369,39 @@ int main()
 
       case PlaneSelect:
       {
-        cout << "****************[비행기 선택]****************" << endl;
-        int airplane_number = ChoiceAirplanes(airplanes);
-        current_airplane = airplanes[airplane_number];
-        cout << "****************기체 변경 완료****************" << endl;
+        cout << "****************[기체 선택]****************" << endl;
+        Airplane *airplane_pointer = ChoiceAirplanes(airplanes);
+        if (airplane_pointer == nullptr)
+        {
+          cout << "****************기체를 먼저 추가해주세요****************" << endl;
+        }
+        else
+        {
+          current_airplane = airplane_pointer;
+          cout << "****************기체 변경 완료****************" << endl;
+        }
         break;
       }
       
       case PlaneAdd:
       {
-        cout << "비행기 추가" << endl;
+        cout << "****************[기체 추가]****************" << endl;
+        
+        string plane_name;
+        int capacity;
+
+        cout << "기체 이름을 작성하시오 >>> ";
+        cin >> plane_name;
+     
+        cout << "기체 수용인원을 작성하시오 >>> ";
+        cin >> capacity;
+
+        airplanes.push_back(new Helicopter(plane_name, capacity));
+
+        cout << "****************기체 추가 완료****************" << endl;
         break;
       }
-
+      
       case ShowCurrentPlane:
       {
         cout << "****************[현재 비행기 정보 출력]****************" << endl;
@@ -342,31 +409,42 @@ int main()
         cout << "****************현재 비행기 정보 출력 완료****************" << endl;
         break;
       }
-      
+
+      case ShowFightJetCount:
+      {
+        cout << "****************[총 전투기 기체 수 출력]****************" << endl;
+        cout << "현재 전투기는 " << FighterJet::fighter_jet_count << "대 있습니다" << endl;
+        cout << "****************총 전투기 기체 수 출력 완료****************" << endl;
+        break;
+      }
+
       default:
       {
-        cout << "잘못 입력됨" << endl;
         break;
       }
     }
-    
-    for (auto airplane : airplanes)
-    {
-      delete airplane;
-    }
 
-    cout << "다음 목록을 선택하세요" << endl;
+
+    current_airplane->RefuelAirplane(111);
+
+    cout << "\n다음 목록을 선택하세요 [현재 기체 - " << current_airplane->GetAirpaneName() << "]" << endl;
     cout << "1. 기장 선택" << endl;
     cout << "2. 기장 추가" << endl;
     cout << "3. 비행기 선택" << endl;
     cout << "4. 비행기 추가" << endl;
     cout << "5. 현재 비행기 정보 출력" << endl;
+    cout << "6. 전투기 기체 수 확인" << endl;
     cout << "목록 선택 >>> ";
     cin >> choice;
-    cout << endl;
     choice--;
+    cout << endl;
   };
 
+  // 동적 메모리 해제를 while문 내부에 작성한 실수로 오류가 있었음
+  for (auto airplane : airplanes)
+  {
+    delete airplane;
+  }
 
 
   std::cout << "\n\n";
