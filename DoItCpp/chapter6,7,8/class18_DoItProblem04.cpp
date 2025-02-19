@@ -18,17 +18,11 @@ enum Status {
   PlaneSelect,         // 2 비행기 선택
   PlaneAdd,            // 3 비행기 추가
   ShowCurrentPlane,    // 4 현재 비행기 정보 출력
-  ShowFightJetCount    // 5 총 전투기 수 확인
+  ShowFightJetCount,    // 5 총 전투기 수 확인
+  ShowHelicopterCount    // 6 총 전투기 수 확인
 };
 
-enum CurrentPlaneManagement {
-  Refuel = 6,          // 6 기름 채우기
-  TakeOff,             // 7 이륙하기
-  Land,                // 8 착륙하기
-  IncreaseAltitude,    // 9 고도 상승
-  DecreaseAltitude,    // 10 고도 하강
-  EmergencyLanding     // 11 불시착
-};
+
 
 
 // 비행기 엔진 클래스 - 컴포지션
@@ -208,7 +202,8 @@ class FighterJet : public Airplane
 class Helicopter : public Airplane
 {
   public:
-    Helicopter(string name, int capacity) : Airplane(name, capacity), engine(5555) {}
+    Helicopter(string name, int capacity) : Airplane(name, capacity), engine(5555) { helicopter_count++; }
+    ~Helicopter() { helicopter_count--; }
 
     virtual void AirplaneInformation() override
     {
@@ -276,13 +271,18 @@ class Helicopter : public Airplane
       cockpit.EmergencyLanding();
     }
 
+    // 정적 멤버 변수 활용 - 전투기 수 
+    static int helicopter_count;
+
     // 컴포지션 활용
     Engine engine;   // 기체 엔진
     Cockpit cockpit; // 조종석
 };
 
-// 정적 멤버 변수는 전역에서 정의 - 초기 전투기 수 1개
+// 정적 멤버 변수는 전역에서 정의
 int FighterJet::fighter_jet_count = 0;
+int Helicopter::helicopter_count = 0;
+
 
 
 // 기장 선택
@@ -418,12 +418,20 @@ int main()
         break;
       }
 
+      case ShowHelicopterCount:
+      {
+        cout << "****************[총 헬리콥터 기체 수 출력]****************" << endl;
+        cout << "현재 헬리콥터는 " << Helicopter::helicopter_count << "대 있습니다" << endl;
+        cout << "****************총 헬리콥터 기체 수 출력 완료****************" << endl;
+        break;
+      }
+
       default:
       {
         break;
       }
     }
-
+    
 
     current_airplane->RefuelAirplane(111);
 
@@ -434,13 +442,14 @@ int main()
     cout << "4. 비행기 추가" << endl;
     cout << "5. 현재 비행기 정보 출력" << endl;
     cout << "6. 전투기 기체 수 확인" << endl;
+    cout << "7. 헬리콥터 기체 수 확인" << endl;
     cout << "목록 선택 >>> ";
     cin >> choice;
     choice--;
     cout << endl;
   };
 
-  // 동적 메모리 해제를 while문 내부에 작성한 실수로 오류가 있었음
+  // 동적 메모리 해제
   for (auto airplane : airplanes)
   {
     delete airplane;
