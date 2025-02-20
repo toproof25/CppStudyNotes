@@ -19,9 +19,6 @@ double add_value(double data1, double data2)
   return (int)data1 + (int)data2;
 }
 
-
-
-
 int main()
 {
   int data1 = 10, data2 = 30;
