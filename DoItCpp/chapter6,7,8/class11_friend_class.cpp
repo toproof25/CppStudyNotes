@@ -11,7 +11,7 @@ class sangok
     sangok(int age, std::string number): age(age), number(number) {};
 
   private:
-    int age;
+    int age = 100;
     std::string number;
     std::string hobby = "러닝/게임/독서 등";
 
@@ -59,7 +59,7 @@ class oksang
 
   private:
     int age;
-    std::string number;
+    std::string number; 
 };
 
 int main()
