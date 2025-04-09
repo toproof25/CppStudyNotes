@@ -37,12 +37,16 @@ int main()
   int N, sum, answer=0, number=0;
   cin >> N;
 
+  // 1부터 N까지
   while(++number < N)
   {
+    // number와 number의 각 자릿수의 합을 계산
     sum = number + GetDigitSum(number);
     
+    // N의 생성자이면
     if(sum == N)
     {
+      // 정답을 저장하고 나오기, 1부터 시작했기에 최초값이 최소값
       answer = number;
       break;
     }
