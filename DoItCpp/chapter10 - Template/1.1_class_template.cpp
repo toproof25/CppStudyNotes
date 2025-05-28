@@ -1,5 +1,9 @@
 /*
-template로 범용성 있는 class 제작
+Template을 이용하여 Stack Class를 제작했을 때
+다양한 자료형을 Stack구조로 사용할 수 있음
+
+Template를 사용하지 않았다면, 각 자료형을 처리하는 StackInt, StackFloat, StackString 등을 제작해야 한다
+이를 template를 이용하여 하나의 클래스에서 처리할 수 있음
 */
 #include <iostream>
 #include <windows.h>
