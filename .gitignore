@@ -31,5 +31,7 @@
 *.out
 *.app
 
+commit_text.txt
+
 #.vscode/*
 #*.json
