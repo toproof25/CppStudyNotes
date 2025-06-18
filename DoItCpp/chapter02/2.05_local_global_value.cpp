@@ -13,7 +13,7 @@ void add_local(int number)
   int value = number + 99;
 }
 
-// add_global 내 사용된 value는 전역변수 value를 의미
+// add_global 내 사용된 value는 전역변수 value를 의미 
 void add_global(int number)
 {
   value += number;
