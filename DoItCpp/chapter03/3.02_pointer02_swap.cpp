@@ -2,7 +2,6 @@
 * 포인터를 이용하여 두 값을 변환하는 방법
 */
 #include <iostream>
-#include <windows.h>
 
 // Call by Value - 값을 복사하여 해당 함수내에 지역변수로 바뀜 - 원본은 안바뀜
 void swap(int num1, int num2)
@@ -59,7 +58,5 @@ int main()
     std::cout << "num2 : " << num2 << std::endl;
     std::cout << '\n';
 
-    std::cout << "\n\n";
-    system("pause");
     return 0;
 }
