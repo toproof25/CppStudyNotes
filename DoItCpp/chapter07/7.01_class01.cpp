@@ -1,5 +1,5 @@
 /*
-* 간단한 클래스 정의로 클래스, 객체 이해
+* 간단한 클래스 정의로 클래스, 객체 이해 
 */
 #include <iostream>
 #include <windows.h>
