@@ -20,7 +20,7 @@ int main()
     std::cout << "즉 역참조를 통해 첫번째 요소의 값을 알 수 있음 *arr_int : " << *arr_int << std::endl;
     std::cout << "\n\n";
 
-    // 포인터로 접근 하기
+    // 포인터로 접근 하기 - 배열을 나타내는 변수 자체는 해당 배열의 첫번째 요소의 주소를 의미. 해당 주소+n은 자료형 크기에 맞게 증가
     std::cout << "값의 주소를 알 수 있으며, 역참조가 가능하니 다른 요소의 값도 알 수 있다 (주소+n은 자료형 크기에 맞게 크기가 증가)" << std::endl;
     std::cout << "*arr_int : " << *arr_int << std::endl;
     std::cout << "*(arr_int+1) : " << *(arr_int+1) << " -> 소괄호의 의미는 우선 연산자를 고려하기 때문 *arr_int+1 는 *arr_int값인 1에 +1을 하여 2가 됨 " << std::endl;
