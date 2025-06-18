@@ -6,7 +6,7 @@
 
 int main()
 {
-    // 고정 배열은 크기가 고정되어 있어서 동적으로 크기를 변경할 수 없다
+    // 고정 배열은 크기가 고정되어 있어서 동적으로 크기를 변경할 수 없다 
     std::cout << "고정 배열 선언" << std::endl;
     int fixed_arr_int[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     for(const int &num : fixed_arr_int)
