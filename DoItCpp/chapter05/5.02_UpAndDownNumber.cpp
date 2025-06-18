@@ -6,6 +6,8 @@
 using namespace std;
 
 int main(){
+
+ // 난수 생성 부분
  random_device rd;
  mt19937 gen(rd());
  uniform_int_distribution<> dist(1, 100);
