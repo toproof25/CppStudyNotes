@@ -1,5 +1,5 @@
 /*
-* 구조체 타입 동적 배열 선언과 사용
+* 구조체 타입 동적 배열 선언과 사용하기
 */
 #include <iostream>
 #include <windows.h>
