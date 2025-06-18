@@ -1,5 +1,5 @@
 /*
-* 포인터 변수 앞에 const를 붙이는 경우
+* 포인터 변수 앞에 const를 붙이는 경우 
 */
 #include <iostream>
 #include <windows.h>
