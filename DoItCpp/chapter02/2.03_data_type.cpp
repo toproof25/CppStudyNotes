@@ -10,7 +10,7 @@
 int main()
 {
 
-    // 정수형 데이터 타입
+    // 정수형 데이터 타입 
     char character = 'A';
     short short_number = 32767;
     int number = 2147483647;
