@@ -24,7 +24,7 @@ int main()
     cout << "number는 0 입니다" << endl; 
   }
 
-  // 어떤 값에 따라 점프 테이블 형태로 실행
+  // 어떤 값에 따라 점프 테이블 형태로 실행 
   // if문은 참일 때 까지 순차적으로 모든 if~else if를 검사하나, switch는 표현식에 따라 바로 해당 case를 실행
   switch (c)
   {
