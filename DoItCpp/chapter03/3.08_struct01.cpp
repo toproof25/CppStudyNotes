@@ -4,6 +4,7 @@
 #include <iostream>
 #include <windows.h>
 
+// x, y, z값을 가지는 구조체 선언
 struct Position
 {
     double x = 0.0;
