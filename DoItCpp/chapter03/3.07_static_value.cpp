@@ -22,7 +22,7 @@ void static_value()
 
 int main()
 {
-
+    // 정적 변수는 데이터 메모리 영역에 저장된다
     static_value();
     static_value();
     static_value();
