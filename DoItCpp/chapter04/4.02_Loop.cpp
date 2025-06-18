@@ -1,5 +1,5 @@
 /*
-* 반복문
+* 반복문 for문, while문, do while문
 */
 #include <iostream>
 using namespace std;
@@ -25,6 +25,7 @@ int main()
   cout << '\n';
 
   // do while문 - 1회는 실행이 보장되며, 조건에 따라 반복
+  // j는 0으로 while에서 조건이 거짓미나, do에서 한번은 실행을 보장받는다
   int j=0;
   do
   {
