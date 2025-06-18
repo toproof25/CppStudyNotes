@@ -1,5 +1,5 @@
 /*
-* Do It C++ 교재 몬스터 클래스 정의
+* Do It C++ 교재 몬스터 클래스 정의 
 */
 #include <iostream>
 #include <windows.h>
