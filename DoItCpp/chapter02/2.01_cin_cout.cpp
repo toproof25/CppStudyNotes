@@ -1,5 +1,5 @@
 /*
- * 기본 C++의 입력과 출력
+ * 기본 C++의 입력과 출력 
  */
 
 #include <iostream>  // input, output 기능을 가진 iostream 헤더파일
