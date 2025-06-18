@@ -1,5 +1,5 @@
 /*
-* 부모 클래스 멤버 함수 오버라이드 
+* 부모 클래스 멤버 함수 오버라이드  
 */
 #include <iostream>
 #include <windows.h>
