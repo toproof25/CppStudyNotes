@@ -1,5 +1,5 @@
 /*
-* 스택 풀기에 대한 이해
+* 스택 풀기에 대한 이해 학습
 */
 #include <iostream>
 using namespace std;
