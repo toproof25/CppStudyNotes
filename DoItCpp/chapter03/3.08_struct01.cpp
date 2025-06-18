@@ -15,7 +15,7 @@ struct Position
 // 구조체 포인터와 좌표를 받아서 값을 변경 - 원본 구조체의 값을 바꾸기 위해 포인터로 받아옴
 void set_position(Position *pos, double x, double y, double z)
 {
-    (*pos).x = x; // *를 이용하여 값에 접근
+    (*pos).x = x; // *를 이용하여 값에 접근 
     (*pos).y = y;
     (*pos).z = z;
 }
