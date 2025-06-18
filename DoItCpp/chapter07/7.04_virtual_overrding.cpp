@@ -1,5 +1,5 @@
 /*
-* 가상함수 오버라이드 
+* 가상함수 오버라이드  
 */
 #include <iostream>
 #include <windows.h>
