@@ -1,5 +1,5 @@
 /*
-* 동적 배열 선언
+* 동적 배열 선언과 사용법 학습
 */
 #include <iostream>
 #include <windows.h>
