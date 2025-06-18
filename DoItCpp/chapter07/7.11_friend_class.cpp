@@ -29,7 +29,7 @@ class minsu
     std::string number;
     std::string hobby = "산책하기";
 
-    // 프렌드 함수 - 전역 함수 minsu_hobby에서는 minsu의 접근 지정자를 무시할 수 있다
+    // 프렌드 함수 - 전역 함수 minsu_hobby에서는 minsu의 접근 지정자를 무시할 수 있다 
     friend void minsu_hobby(const minsu &minsu);
 
 };
