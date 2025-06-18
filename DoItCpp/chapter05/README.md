@@ -48,6 +48,30 @@ catch (...){
 - 이처럼 함수에서 throw가 발생했을 때 해당 함수에 catch가 없다면 예외를 처리하기 위해 호출된 곳에서 예외가 처리된다.
 
 
+###  noexcept
+- noexcept는 이 함수는 예외 처리 문구가 throw를 발생시키지 않는 것을 명시하는 키워드이다.
+- 이를 통해 컴파일이 더 빠르고 명확하게 진행될 수는 있다.
+- 그러나 키워드를 사용했다고 하여 컴파일 과정에서 오류가 발생되지는 않으나, 런타임중에 오류가 발생할 수 있다.
+```cpp
+void func() noexcept
+{
+	cout << "Hello";
+	throw 1;
+}
+
+int main()
+{
+	try{
+		func();
+	}
+	catch (int e){
+		cout << "error : " << e;
+	}
+	return 0;
+}
+```
+
+
 ### Up&Down에서 사용하는 예외 처리 코드 
 ```cpp
 #include <iostream>
