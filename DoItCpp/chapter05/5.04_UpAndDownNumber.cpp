@@ -24,7 +24,7 @@ int main(){
      int number;
      cin >> number;
 
-     // 숫자가 아닌 입력이 들어왔는지 확인하는 부분
+     // 숫자가 아닌 입력이 들어왔는지 확인하는 부분 
      if (cin.fail()) {
        cin.clear(); // 입력 스트림의 상태 초기화
        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // 버퍼 비우기
