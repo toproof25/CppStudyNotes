@@ -1,5 +1,5 @@
 /*
-* noexcept를 이용하여 예외를 던지는 함수 구분과 사용법 학습
+* noexcept를 이용하여 예외를 던지는 함수 구분과 사용법 학습 
 */
 #include <iostream>
 using namespace std;
