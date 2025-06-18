@@ -1,5 +1,5 @@
 /*
-* 코드 설명 작성
+* 기본적인 예외처리 이해와 사용법 학습
 */
 #include <iostream>
 using namespace std;
