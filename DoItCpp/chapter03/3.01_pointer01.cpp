@@ -1,5 +1,5 @@
 /*
-* 포인터 변수 선언, 사용
+* 포인터 변수 선언, 사용 
 */
 #include <iostream>
 #include <windows.h>
