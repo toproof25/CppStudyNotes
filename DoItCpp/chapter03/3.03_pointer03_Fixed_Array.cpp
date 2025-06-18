@@ -1,5 +1,5 @@
 /*
-* C++에서 고정 배열과 포인터의 관계 학습
+* C++에서 고정 배열과 포인터의 관계 학습 
 */
 #include <iostream>
 #include <windows.h>
