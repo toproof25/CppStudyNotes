@@ -7,7 +7,7 @@ using namespace std;
 int main()
 {
   
-  // for문 - 조건이 참인 경우이며, 특정 범위에 반복하기 유용 (1~100까지)
+  // for문 - 조건이 참인 경우이며, 특정 범위에 반복하기 유용 (1~100까지) 
   for (int i=1; i<101; ++i)
   {
     cout << "for i : " << i << '\n';
