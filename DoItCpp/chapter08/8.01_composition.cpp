@@ -1,5 +1,5 @@
 /*
-* Composition 개념 익히기
+* Composition 개념 익히기 
 */
 #include <iostream>
 
