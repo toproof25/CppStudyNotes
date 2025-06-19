@@ -21,7 +21,7 @@ using namespace std;
 class coordinate
 {
   public:
-    // 순수 가상 함수를 선언
+    // 순수 가상 함수를 선언 
     virtual void reset_vector()=0;
     virtual void set_vector(double x, double y, double z)=0;
     virtual void print_vector() const =0;
