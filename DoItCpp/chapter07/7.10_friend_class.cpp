@@ -1,5 +1,5 @@
 /*
-* 프렌드 클래스, 함수 사용
+* 프렌드 클래스, 함수 사용 
 */
 #include <iostream>
 #include <windows.h>
