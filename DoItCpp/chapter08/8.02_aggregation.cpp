@@ -8,7 +8,7 @@ using namespace std;
 // 캐릭터 클래스 (추상화 - 플레이어, 몬스터)
 class character {
 
-  // 생성자로 체력과 파워를 초기화
+  // 생성자로 체력과 파워를 초기화 
   public:
     character() : hp(100), power(100) { std::cout << "character\n"; };
 
