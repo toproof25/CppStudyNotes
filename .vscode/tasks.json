@@ -1,27 +1,28 @@
 {
-  "version": "2.0.0",
   "tasks": [
     {
       "type": "cppbuild",
       "label": "C/C++: g++.exe 활성 파일 빌드",
-      "command": "C:/mingw64/bin/g++.exe",
+      "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
       "args": [
         "-fdiagnostics-color=always",
         "-g",
-        "-std=gnu++20",
         "${file}",
         "-o",
-        "${fileDirname}\\build\\${fileBasenameNoExtension}.exe",
-        "-lstdc++fs"       // 필요 시 제거 가능
+        "${fileDirname}\\build\\${fileBasenameNoExtension}.exe"
       ],
       "options": {
-        "cwd": "C:/mingw64/bin"
+        "cwd": "C:\\msys64\\mingw64\\bin"
       },
       "problemMatcher": [
         "$gcc"
       ],
-      "group": "build",
-      "detail": "컴파일러: C:/mingw64/bin/g++.exe"
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "디버거에서 생성된 작업입니다."
     }
-  ]
+  ],
+  "version": "2.0.0"
 }

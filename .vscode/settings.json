@@ -45,6 +45,17 @@
     "functional": "cpp",
     "iterator": "cpp",
     "numeric": "cpp",
-    "random": "cpp"
+    "random": "cpp",
+    "bit": "cpp",
+    "charconv": "cpp",
+    "codecvt": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "ratio": "cpp",
+    "format": "cpp",
+    "numbers": "cpp",
+    "span": "cpp",
+    "text_encoding": "cpp",
+    "variant": "cpp"
   }
 }
