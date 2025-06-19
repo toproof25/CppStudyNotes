@@ -2,7 +2,6 @@
 * Composition, Aggregation 개념 익히기
 */
 #include <iostream>
-#include <windows.h>
 
 using namespace std;
 
@@ -56,34 +55,6 @@ void monster_a::attack_special(player target_player) {
 }
 
 
-// 상속이 아닌 컴포지션을 이용한 몬스터 클래스
-class monster_composition {
-  private:
-    // 멤버 변수로 객체를 사용
-    monster monster_base;
-    character character_base;
-
-  public:
-    monster_composition() { cout << "저는 monster_composition 입니다" << endl; };
-    ~monster_composition() {};
-
-    // 상속과 달리 오버라이딩이 아닌 델리게이션으로 사용
-    void attack(player target_player);
-    void attack_special(player target_player);
-};
-
-// 컴포지션 위임 개념으로 기존 일반 공격을 실행
-void monster_composition::attack(player target_player) {
-  monster_base.attack(target_player);
-}
-
-// 스페셜 공격은 오버라이딩이 아닌 함수를 정의하여 사용 (이름은 같게)
-void monster_composition::attack_special(player target_player) {
-  cout << "monster_composition 공격 : 데미지 - 15 hp" << endl;
-}
-
-
-
 // 어그리게이션을 이용한 몬스터 클래스
 class monster_aggregation {
   private:
@@ -123,14 +94,6 @@ int main()
   mon1.attack_special(test);
   }
 
-  // 클래스 멤버 변수로 사용하여 생명 주기가 같음
-  {
-  cout << "\n***컴포지션 monster Class***" << endl;
-  monster_composition mon2;
-  mon2.attack(test);
-  mon2.attack_special(test);
-  }
-
   // 외부에서 객체 생성 후 내부로 전달 - 생명 주기가 다름
   {
   cout << "\n***어그리게이션 monster Class***" << endl;
@@ -141,7 +104,5 @@ int main()
   mon3.attack_special(test);
   }
 
-  std::cout << "\n\n";
-  system("pause");
   return 0;
 }

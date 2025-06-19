@@ -22,9 +22,6 @@ enum Status {
   ShowHelicopterCount    // 6 총 전투기 수 확인
 };
 
-
-
-
 // 비행기 엔진 클래스 - 컴포지션
 class Engine
 {
