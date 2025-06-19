@@ -1,5 +1,5 @@
 /*
-* 코드 설명 작성
+C++ 17 버전 이상으로 맞추고 해야 정상적으로 동작
 */
 #include <iostream>
 #include <string>
@@ -11,11 +11,15 @@ namespace fs = filesystem;
 
 int main()
 {
-  fs::create_directories("MyDirectory");
+  // 절대 경로로 설정
+  string path = "E:\\CppStudyNotes\\DoItCpp\\chapter11\\MyDirectory";
+  fs::create_directories(path);
 
-  ofstream outFile("MyDirectory/test.txt");
+  ofstream outFile(path + "/test.txt");
   outFile << "Hello, File System!" << endl;
   outFile.close();
+
+  cout << "생성 완료" << endl;
 
   
   return 0;
