@@ -8,9 +8,11 @@
       "args": [
         "-fdiagnostics-color=always",
         "-g",
+        "-std=gnu++20",
         "${file}",
         "-o",
-        "${fileDirname}\\build\\${fileBasenameNoExtension}.exe"
+        "${fileDirname}\\build\\${fileBasenameNoExtension}.exe",
+        "-lstdc++fs"       // 필요 시 제거 가능
       ],
       "options": {
         "cwd": "C:/mingw64/bin"
