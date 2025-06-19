@@ -1,4 +1,4 @@
-## Template (템플릿)
+### Template (템플릿)
 - template`는 다양한 타입을 범용적으로 사용하기 위해 사용한다. 
 ```cpp
 template<typename T>
@@ -12,7 +12,7 @@ T add_value(T t1, T t2)
 
 
 
-## Template 특수화
+### Template 특수화
 - `template`는 다양한 타입을 범용적으로 사용하기 위해 제작하나 그 중에서도 일부 타입에 대해서 다른 알고리즘을 적용하고자 할 경우 사용한다.
 
 ```cpp
