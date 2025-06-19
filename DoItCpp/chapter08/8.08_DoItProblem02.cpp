@@ -1,5 +1,5 @@
 /*
-* 몬스터 클래스를 어그리게시연스로 변경
+* 몬스터 클래스를 어그리게이션으로 변경 
 */
 #include <iostream>
 #include <windows.h>
