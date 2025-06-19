@@ -38,7 +38,7 @@ Stack<T>::Stack(int size) : size(size), top(-1) {
     array = new T[size]; 
 }
 
-// 소멸자 구현 (메모리 해제)
+// 소멸자 구현 (메모리 해제) 
 template<typename T>
 Stack<T>::~Stack() {
     delete[] array;
