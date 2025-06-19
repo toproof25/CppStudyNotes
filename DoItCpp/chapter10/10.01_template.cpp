@@ -1,5 +1,5 @@
 /*
-* template 사용하여 여러 타입의 합을 반환하는 함수 제작
+* template 사용하여 여러 타입의 합을 반환하는 함수 제작 
 */
 #include <iostream>
 #include <windows.h>
