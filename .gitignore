@@ -32,6 +32,9 @@
 *.app
 
 commit_text.txt
+DoItCpp/chapter06,07,08
+
+
 
 #.vscode/*
 #*.json
