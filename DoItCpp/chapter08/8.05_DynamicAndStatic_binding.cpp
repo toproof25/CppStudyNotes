@@ -6,7 +6,7 @@
 
 using namespace std;
 
-//기본 Monster 클래스
+//기본 Monster 클래스 
 class monster {
   public:
     virtual void attack_special();
