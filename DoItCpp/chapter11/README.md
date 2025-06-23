@@ -213,6 +213,7 @@ this->number = new int(*(ref.number)); // 동적 할당의 경우 새로운 메�
 }
 ```
 ### 컨테이너 변수를 복사 - copy 함수 사용하기
+`#include <algorithm>`에 포함된 함수로 간결하면서 성능을 확보하여 깊은 복사를 수행
 `copy(_Init _First, _InIt _Lask, _OutIn _Dest)` : 기존 컨테이너 변수에 시작과 끝 iterator와 복사할 대상 컨테이너를 통해 복사를 한다
 `copy(v.begin(), v.end(), back_inserter(to_v))` : v벡터를 to_v에 복사하는 깊은 복사
 
