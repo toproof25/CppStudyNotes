@@ -1,5 +1,7 @@
 /*
 string 라이브러리 기본 사용법과 기능들 익히기 
+- 객체 초기화
+- length(), size(), append(), empty(), find(), compare(), replace(), 
 */
 #include <iostream>
 #include <string> // string 문자열 라이브러리
