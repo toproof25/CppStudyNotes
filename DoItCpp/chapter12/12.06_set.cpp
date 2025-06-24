@@ -46,18 +46,23 @@ int main()
 
 
 
-  // set.find(찾을값) - 원소를 찾고, 원소가 없으면 end()를 반환
+  // set.count(찾을값) - 해당 원소의 개수 반환
   string find_value = "김철수";
   cout << "mySet.count("+find_value+") : " << mySet.count(find_value) << endl;
-  if(mySet.find(find_value) != mySet.end())
-    cout << "[" << find_value+"]는 mySet에 있습니다" << endl;
+
+  // set.find(찾을값)는 해당 iterator를 반환, 원소가 없으면 end()를 반환
+  set<string>::iterator find_result = mySet.find(find_value);
+  if(find_result != mySet.end())
+    cout << "[" << *find_result+"]는 mySet에 있습니다" << endl;
   else
     cout << "[" << find_value+"]는 mySet에 없습니다ㅜㅜㅜㅜ" << endl;
 
+  // 없는 원소의 경우
   find_value = "김철수철수수수";
   cout << "mySet.count("+find_value+") : " << mySet.count(find_value) << endl;
-  if(mySet.find(find_value) != mySet.end())
-    cout << "[" << find_value+"]는 mySet에 있습니다" << endl;
+  find_result = mySet.find(find_value);
+  if(find_result != mySet.end())
+    cout << "[" << *find_result+"]는 mySet에 있습니다" << endl;
   else
     cout << "[" << find_value+"]는 mySet에 없습니다ㅜㅜㅜㅜ" << endl;
   cout << endl;
