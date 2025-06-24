@@ -61,6 +61,9 @@ int main()
   // size() - 리스트 크기 확인
   cout << "li 사이즈 : " << li.size() << endl;
 
+  cout << "리스트의 첫 원소 : " << li.front() << endl;
+  cout << "리스트의 끝 원소 : " << li.back() << endl;
+
   // list 반복자로 요소 출력
   for(list<int>::iterator it = li.begin(); it != li.end(); ++it)
   {
