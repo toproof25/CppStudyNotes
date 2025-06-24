@@ -1,5 +1,5 @@
 /*
-* 코드 설명 작성
+리스트 사용법과 이해
 */
 #include <iostream>
 #include <list>
