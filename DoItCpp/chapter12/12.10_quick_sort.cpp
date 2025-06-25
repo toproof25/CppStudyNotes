@@ -3,7 +3,7 @@ Quick Sort (퀵 정렬)
 퀵 정렬은 평균적으로 O(n log n), 최대로는 O(n^2)의 시간복잡도로 정렬을 수행한다
 
 해당 함수는 헤더 파일 <algorithm>에 sort() 함수로 사용할 수 있다.
-또한 임의 접근이 가능한 vector, array, deque 등 컨테이너에 사용이 가능하다
+또한 임의 접근이 가능한 vector, array, deque 등 컨테이너에 사용이 가능하다 
 */
 
 #include <iostream>
