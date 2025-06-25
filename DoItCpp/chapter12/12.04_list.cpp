@@ -6,6 +6,7 @@
 그렇기에 벡터는 임의의 요소 접근이 매우 빠르나 리스트는 임의 접근이 불가능하며, 찾아가야한다.
 
 벡터는 원소 접근이 자주 발생하고 수정할 경우에 유리하며, 리스트는 삽입과 삭제가 빈번할 때 유리하다
+하지만 이중 연결 리스트는 next, pre의 포인터만 변경하면 되기에 삽입에 유리하다
 */
 #include <iostream>
 #include <list>
@@ -34,11 +35,24 @@ int main()
   li.push_back(102);
   print_list_all(li);
 
+  // 리스트 중간인 두번째에 9999를 삽입 
+  cout << "리스트 중간인 두번째에 9999를 삽입" << endl;
+  list<int>::iterator it = li.begin();
+  li.insert(++it, 9999);
+  print_list_all(li);
+  
+
   // push_front() - 리스트 앞에 값을 추가
   cout << "push_front() - 리스트 앞에 값을 추가" << endl;
   li.push_front(99);
   li.push_front(98);
   li.push_front(97);
+  print_list_all(li);
+
+  // 리스트 중간 제거 - 마지막에서 두번째 노드 제거 
+  cout << "리스트 중간 제거 - 마지막에서 두번째 노드 제거" << endl;
+  it = li.end();
+  li.erase(--it);
   print_list_all(li);
 
 
