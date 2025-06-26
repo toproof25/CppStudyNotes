@@ -33,7 +33,12 @@
 
 commit_text.txt
 MyDirectory
-
+./.vscode
+./.vscode/*
+c_cpp_properties.json
+launch.json
+settings.json
+tasks.json
 
 #.vscode/*
 #*.json
