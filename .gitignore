@@ -33,8 +33,9 @@
 
 commit_text.txt
 MyDirectory
-./.vscode
-./.vscode/*
+
+.vscode
+*.json
 c_cpp_properties.json
 launch.json
 settings.json
