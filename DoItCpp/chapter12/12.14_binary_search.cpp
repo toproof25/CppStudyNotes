@@ -9,7 +9,7 @@ find는 선형 탐색으로 처음부터 끝까지 값을 확인하면서 순차
 #include <random>
 using namespace std;
 
-// == 연산자 오버로딩
+// 연산자 오버로딩을 이용하여 그조체 이진 탐색
 struct Person
 {
   string name;
@@ -22,7 +22,7 @@ struct Person
   }
 };
 
-// 이진탐색 오버로딩에 맞게 똑같이 '>'으로 내림차순으로 정렬
+// 이진탐색 오버로딩에 맞게 똑같이 '<'으로 오름차순으로 정렬
 bool person_compare(const Person& lhs, const Person& rhs)
 {
   return lhs.name < rhs.name;
