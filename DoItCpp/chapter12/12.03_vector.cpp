@@ -77,9 +77,9 @@ int main()
   cout << endl;
 
   // erase(반복자) 해당 위치의 요소를 제거
-  v2.erase(v2.begin()+2); // v2[2] 앞에 25 추가
+  v2.erase(v2.begin()+2); // v2[2] 제거
 
-  // 먼저 v2.begin()+2 가 제어되었기 때문에 반복자가 앞당겨져서 의도하지 않은 값이 사라질 수 있다
+  // 먼저 v2.erase()+2 가 제어되었기 때문에 반복자가 앞당겨져서 의도하지 않은 값이 사라질 수 있다
   v2.erase(v2.begin()+4);
   v2.erase(v2.begin()+6);
   // erase 후 출력
