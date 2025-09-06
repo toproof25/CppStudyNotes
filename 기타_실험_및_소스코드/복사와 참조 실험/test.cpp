@@ -1,5 +1,4 @@
 // 복사와 참조로 반복할 때 실행 시간 차이
-
 #include <iostream>
 #include <chrono>
 #include <vector>
@@ -33,54 +32,77 @@ std::vector<ABCD> struct_test(10000000);
 
 
 template<typename T>
-void copyTest(const std::vector<T>& test_vector) {
+int copyTest(const std::vector<T>& test_vector) {
     T sum = 0;
     for (T v : test_vector) { sum += v; }
+    return sum;
 }
 template<typename T>
-void refTest(const std::vector<T>& test_vector) {
+int refTest(const std::vector<T>& test_vector) {
     T sum = 0;
     for (const T& v : test_vector) { sum += v; }
+    return sum;
 }
 
 template<typename T>
-void struct_copyTest(const std::vector<T>& test_vector) {
+int struct_copyTest(const std::vector<T>& test_vector) {
     int sum = 0;
     for (T v : test_vector) { sum += v.a; }
+    return sum;
 }
 template<typename T>
-void struct_refTest(const std::vector<T>& test_vector) {
+int struct_refTest(const std::vector<T>& test_vector) {
     int sum = 0;
     for (const T& v : test_vector) { sum += v.a; }
+    return sum;
 }
 
 
 int main() {
     std::cout << "실행 시간 테스트\n\n";
-
     
+    volatile int dummy_sum = 0;
     t_start = high_resolution_clock::now();     
-    copyTest(double_test);                                      
+    dummy_sum = copyTest(int_test);                                      
     t_end = high_resolution_clock::now();       
     elapsed_seconds = t_end - t_start;
-    std::cout << "일반 타입 복사 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
+    std::cout << "int 타입 복사 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
 
+    dummy_sum = 0;
     t_start = high_resolution_clock::now();        
-    refTest(double_test);                           
+    dummy_sum = refTest(int_test);                           
     t_end = high_resolution_clock::now();     
     elapsed_seconds = t_end - t_start;
-    std::cout << "일반 타입 const 참조 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
+    std::cout << "int 타입 const 참조 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
 
     std::cout << "----------------------------------------------------------------------------------------------\n";
 
+    dummy_sum = 0;
     t_start = high_resolution_clock::now();     
-    struct_copyTest(struct_test);                                      
+    dummy_sum = copyTest(double_test);                                      
+    t_end = high_resolution_clock::now();       
+    elapsed_seconds = t_end - t_start;
+    std::cout << "double 타입 복사 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
+
+    dummy_sum = 0;
+    t_start = high_resolution_clock::now();        
+    dummy_sum = refTest(double_test);                           
+    t_end = high_resolution_clock::now();     
+    elapsed_seconds = t_end - t_start;
+    std::cout << "double 타입 const 참조 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
+
+    std::cout << "----------------------------------------------------------------------------------------------\n";
+
+    dummy_sum = 0;
+    t_start = high_resolution_clock::now();     
+    dummy_sum = struct_copyTest(struct_test);                                      
     t_end = high_resolution_clock::now();       
     elapsed_seconds = t_end - t_start;
     std::cout << "구조체 타입 복사 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
 
+    dummy_sum = 0;
     t_start = high_resolution_clock::now();        
-    struct_refTest(struct_test);                           
+    dummy_sum = struct_refTest(struct_test);                           
     t_end = high_resolution_clock::now();     
     elapsed_seconds = t_end - t_start;
     std::cout << "구조체 타입 const 참조 방식 경과 시간 : " << elapsed_seconds.count() << " seconds\n";
