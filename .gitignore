@@ -37,6 +37,7 @@ MyDirectory
 # VS Code 설정 폴더
 .vscode/
 bulid
+*.prob
 
 #.vscode/*
 #*.json
