@@ -12,8 +12,8 @@ std::chrono::time_point<std::chrono::high_resolution_clock> t_start; // 시작 �
 std::chrono::time_point<std::chrono::high_resolution_clock> t_end;   // 종료 시간 저장
 duration<double> elapsed_seconds;  //  시작 - 종료
 
-std::vector<int> int_test(10000000, 1);
-std::vector<double> double_test(10000000, 1.2345);
+std::vector<int> int_test(100000000, 1);
+std::vector<double> double_test(100000000, 1.2345);
 
 struct ABCD
 {
@@ -28,7 +28,7 @@ struct ABCD
   void mul() { int sum = a*b*c*d; }
   void dev() { int sum = a/b/c/d; }
 };
-std::vector<ABCD> struct_test(10000000);
+std::vector<ABCD> struct_test(100000000);
 
 
 template<typename T>

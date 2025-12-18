@@ -15,8 +15,8 @@ template<typename T>
 class Queue
 {
   private:
-    int frontIndex = -1;
-    int backIndex = -1;
+    int frontIndex = 0;
+    int backIndex = 0;
     int count = 0;
     int size;
     std::unique_ptr<T[]> queueArray;  
@@ -30,8 +30,12 @@ class Queue
 
     void push(const T& value);
     void push(T&& value);
-    T pop();
-    T front();
+    
+    // STL Queue pop은 반환값이 없음
+    // T pop();
+    void pop();
+    
+    const T& front();
 
     template<typename... Args>
     void emplace(Args&&... args);
@@ -62,35 +66,49 @@ bool Queue<T>::isFull() noexcept
 template<typename T>
 void Queue<T>::push(const T& value)
 {
-  if (isFull()) throw std::out_of_range("Error Push, Index Out of Bounds: " + std::to_string(backIndex));
-  backIndex = backIndex+1 % size;
-  count++;
+  if (isFull()) throw std::out_of_range("Error Push copy, Index Out of Bounds: " + std::to_string(backIndex));
+
   queueArray[backIndex] = value;
+  backIndex = (backIndex+1) % size;
+  count++;
 }
 template<typename T>
 void Queue<T>::push(T&& value)
 {
-  if (isFull()) throw std::out_of_range("Error Push, Index Out of Bounds: " + std::to_string(backIndex));
-  backIndex = backIndex+1 % size;
-  count++;
+  if (isFull()) throw std::out_of_range("Error Push move, Index Out of Bounds: " + std::to_string(backIndex));
+
   queueArray[backIndex] = std::move(value);
+  backIndex = (backIndex+1) % size;
+  count++;
 }
 
-// 공간을 확인 후 제거
+// // 공간을 확인 후 제거
+// template<typename T>
+// T Queue<T>::pop()
+// { 
+//   if (isEmpty()) throw std::out_of_range("Error pop, Index Out of Bounds: " + std::to_string(frontIndex));
+
+//   T popValue = std::move(queueArray[frontIndex]);
+//   queueArray[frontIndex].~T();
+//   frontIndex = (frontIndex+1) % size;
+//   count--;
+//   return popValue;
+// }
+
+//공간을 확인 후 제거
 template<typename T>
-T Queue<T>::pop()
+void Queue<T>::pop()
 { 
   if (isEmpty()) throw std::out_of_range("Error pop, Index Out of Bounds: " + std::to_string(frontIndex));
-  frontIndex = frontIndex+1 % size;
+
+  queueArray[frontIndex].~T();
+  frontIndex = (frontIndex+1) % size;
   count--;
-  T popValue = std::move(queueArray[frontIndex]);
-  queueArray[frontIndex] = T();
-  return popValue;
 }
 
 // 예외 상황은 throw로 반환하여 스택 풀기가 발생하여 main함수에서 catch로 처리됨
 template<typename T>
-T Queue<T>::front()
+const T& Queue<T>::front()
 {
   if (isEmpty()) throw std::out_of_range("Error front, Index Out of Bounds: " + std::to_string(frontIndex+1));
   return queueArray[(frontIndex+1) % size];
@@ -102,7 +120,8 @@ template<typename... Args>
 void Queue<T>::emplace(Args&&... args)
 {
     if (isFull()) throw std::out_of_range("Error emplace_push, Index Out of Bounds: " + std::to_string(backIndex));
-    backIndex = ++backIndex % size;
-    count++;
+    
     queueArray[backIndex] = T(std::forward<Args>(args)...);
+    backIndex = (backIndex+1) % size;
+    count++;
 }
