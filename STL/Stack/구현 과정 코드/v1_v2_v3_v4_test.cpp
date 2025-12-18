@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <psapi.h>
 
-#include "Stack.hpp"
+#include "v1_v5_stack.hpp"
 
 using namespace std::chrono;
 
@@ -45,34 +45,36 @@ size_t GetMemoryUsage() {
         std::cout << "\n"; \
     }
 
-const int TEST_COUNT = 10000000; 
+const int TEST_COUNT = 20000000; 
 
 int main()
 {
     HeavyObject sourceObj(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다.");
 
-    std::cout << "========================================\n";
-    std::cout << "     Performance Benchmark (N=" << TEST_COUNT << ")\n";
-    std::cout << "========================================\n\n";
+    std::cout << "===========================================================\n";
+    std::cout << "     스택 성능 테스트 (테스트 수 = " << TEST_COUNT << ")\n";
+    std::cout << "===========================================================\n\n";
 
     std::cout << "--- [STACK] Test ---\n";
     
     
-    // v1 Stack 준비
+    // v1 Stack
     v1::Stack v1Stack(TEST_COUNT);
 
-    // v2 Stack 준비
+    // v2 Stack
     v2::Stack v2Stack(TEST_COUNT);
-
-
-    // ok Stack 준비 (고정 크기 할당 - 재할당 비용 없음)
-    ok::Stack<HeavyObject> okStack(TEST_COUNT);
     
-    // STL Stack 준비 (기본적으로 deque 사용, 동적 재할당 발생)
+    // v3 Stack
+    v3::Stack v3Stack(TEST_COUNT);
+
+    // v4 Stack
+    v4::Stack<HeavyObject> v4Stack(TEST_COUNT);
+
+    // STL Stack
     std::stack<HeavyObject> stlStack;
 
     // 1-1. Push (L-value Copy)
-    std::cout << "\n1. Push (L-value Copy)\n";
+    std::cout << "\n1. Push L-value\n";
     MEASURE("v1 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
             v1Stack.push(sourceObj);
@@ -83,9 +85,14 @@ int main()
             v2Stack.push(sourceObj);
         }
     );
-    MEASURE("ok Stack push test", 
+    MEASURE("v3 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
-            okStack.push(sourceObj);
+            v3Stack.push(sourceObj);
+        }
+    );
+    MEASURE("v4 Stack push test", 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v4Stack.push(sourceObj);
         }
     );
     MEASURE("STL Stack push test", 
@@ -94,8 +101,6 @@ int main()
         }
     );
 
-    // 스택 비우기 (Pop 테스트를 위해 다시 채워야 하므로 일단 비움 처리 생략하고 Pop 테스트 진행)
-    
     // 1-2. Pop
     std::cout << "\n2. Pop\n";
     MEASURE("v1 Stack pop test", 
@@ -108,9 +113,14 @@ int main()
             v2Stack.pop();
         }
     );
-    MEASURE("ok Stack pop test", 
+    MEASURE("v3 Stack pop test", 
         for(int i=0; i<TEST_COUNT; ++i) {
-            okStack.pop();
+            v3Stack.pop();
+        }
+    );
+    MEASURE("v4 Stack pop test", 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v4Stack.pop();
         }
     );
     MEASURE("STL Stack pop test", 
@@ -119,57 +129,41 @@ int main()
         }
     );
 
-    // 1-3. Push (R-value Move)
-    std::cout << "\n3. Push (R-value Move)\n";
-    // 다시 빈 상태에서 시작
-    v1::Stack v1StackMove(TEST_COUNT);
-    v2::Stack v2StackMove(TEST_COUNT);
-    ok::Stack<HeavyObject> okStackMove(TEST_COUNT);
-    std::stack<HeavyObject> stlStackMove;
+    // v1 Stack
+    v1::Stack v1StackR_Value(TEST_COUNT);
+    v2::Stack v2StackR_Value(TEST_COUNT);
+    v3::Stack v3StackR_Value(TEST_COUNT);
+    v4::Stack<HeavyObject> v4StackR_Value(TEST_COUNT);
+    std::stack<HeavyObject> stlStackR_Value;
+
+    // 1-3. Push (R-value Copy)
+    std::cout << "\n3. Push R-value\n";
     MEASURE("v1 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
-            v1StackMove.push(HeavyObject(i, "Move"));
+            v1StackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
         }
     );
     MEASURE("v2 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
-            v2StackMove.push(HeavyObject(i, "Move"));
+            v2StackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
         }
     );
-    MEASURE("ok Stack push test", 
+    MEASURE("v3 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
-            // 임시 객체 생성 후 Move
-            okStackMove.push(HeavyObject(i, "Move"));
+            v3StackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
+        }
+    );
+    MEASURE("v4 Stack push test", 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v4StackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
         }
     );
     MEASURE("STL Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
-            stlStackMove.push(HeavyObject(i, "Move"));
+            stlStackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
         }
     );
 
-
-    // 1-4. Push (emplace)
-    std::cout << "\n4. Emplace\n";
-
-    v4::Stack<HeavyObject> v4StackEmplace(TEST_COUNT);
-    ok::Stack<HeavyObject> okStackEmplace(TEST_COUNT);
-    std::stack<HeavyObject> stlStackEmplace;
-    // MEASURE("v4 Stack", 
-    //     for(int i=0; i<TEST_COUNT; ++i) {
-    //         v4StackMove.emplace(i, "Move");
-    //     }
-    // );
-    MEASURE("ok Stack Emplace Test" , 
-        for(int i=0; i<TEST_COUNT; ++i) {
-            okStackEmplace.emplace(i, "Move");
-        }
-    );
-    MEASURE("STL Stack Emplace Test", 
-        for(int i=0; i<TEST_COUNT; ++i) {
-            stlStackEmplace.emplace(i, "Move");
-        }
-    );
 
     return 0;
 }

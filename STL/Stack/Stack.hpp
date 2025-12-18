@@ -19,208 +19,6 @@ template class를 작성한다면 정의와 구현을 한 곳에서 작성해야
 이를 더 명확하게 알기 위해 기존 .h, .cpp을 합친 .hpp 확장자를 사용하여 구분한다
 */
 
-// 성능 테스트를 위한 "무거운" 객체
-struct HeavyObject
-{
-    int id;
-    double data;
-    std::string text; // 힙 할당을 유발하여 복사 비용을 높임
-    char buffer[100]; // 객체 크기를 인위적으로 늘림
-
-    // 기본 생성자
-    HeavyObject() : id(0), data(0.0), text("") {};
-
-    // 매개변수 생성자
-    HeavyObject(int i, std::string t) : id(i), data(3.14), text(std::move(t)) {};
-};
-
-namespace v1
-{
-
-class Stack
-{
-  private:
-    int top = -1;
-    int size;
-    HeavyObject* stackArray;
-
-  public:
-    // 생성자
-    Stack(int N) : size(N) { stackArray = new HeavyObject[N]; }
-
-    // 소멸자
-    ~Stack() { delete[] this->stackArray; }
-
-    // 값 삽입
-    void push(HeavyObject push_number)
-    {
-      if (!isFull()) 
-        stackArray[++top] = push_number;
-    }
-
-    // 값 제거 (최상단 먼저 제거)
-    HeavyObject pop()
-    {
-      if (!isEmpty())
-      {
-        HeavyObject pop_value = stackArray[top];
-        top--;
-        return pop_value;
-      }
-      return HeavyObject();
-    }
-
-    // 맨 위 값
-    HeavyObject peek()
-    {
-      return stackArray[top];
-    }
-
-    // 비어있는지 확인
-    bool isEmpty()
-    {
-      if (top == -1)
-        return true;
-      return false;
-    }
-
-    // 최대인지 확인
-    bool isFull()
-    {
-      if (top-1 == size)
-        return true;
-      return false;
-    }
-};
-
-}
-
-namespace v2
-{
-
-class Stack
-{
-  private:
-    int top = -1;
-    int size;
-    HeavyObject* stackArray;
-
-  public:
-    // 생성자
-    Stack(int N) : size(N) { stackArray = new HeavyObject[N]; }
-
-    // 소멸자
-    ~Stack() { delete[] this->stackArray; }
-
-    // 값 삽입
-    void push(HeavyObject push_number)
-    {
-      if (!isFull()) 
-        stackArray[++top] = push_number;
-    }
-
-    // 값 제거 (최상단 먼저 제거)
-    HeavyObject pop()
-    {
-      if (!isEmpty())
-      {
-        HeavyObject pop_value = stackArray[top];
-
-        // v2 수정 사항, pop을 할 때 소멸자를 명시적으로 호출하여 공간을 유지하면서 객체를 지운다
-        stackArray[top--].~HeavyObject();
-        return pop_value;
-      }
-      return HeavyObject();
-    }
-
-    // 맨 위 값
-    HeavyObject peek()
-    {
-      return stackArray[top];
-    }
-
-    // 비어있는지 확인
-    bool isEmpty()
-    {
-      if (top == -1)
-        return true;
-      return false;
-    }
-
-    // 최대인지 확인
-    bool isFull()
-    {
-      if (top-1 == size)
-        return true;
-      return false;
-    }
-};
-
-}
-
-namespace v3
-{
-
-class Stack
-{
-  private:
-    int top = -1;
-    int size;
-    std::unique_ptr<HeavyObject[]> stackArray;
-
-  public:
-    // 생성자
-    Stack(int N) : size(N) { stackArray = std::make_unique<HeavyObject[]>(this->size); }
-
-    // 값 삽입
-    void push(HeavyObject push_number)
-    {
-      if (!isFull()) 
-        stackArray[++top] = push_number;
-    }
-
-    // 값 제거 (최상단 먼저 제거)
-    HeavyObject pop()
-    {
-      if (!isEmpty())
-      {
-        HeavyObject pop_value = std::move(stackArray[top]);
-        top--;
-        return pop_value;
-      }
-      return HeavyObject();
-    }
-
-    // 맨 위 값
-    HeavyObject peek()
-    {
-      return stackArray[top];
-    }
-
-    // 비어있는지 확인
-    bool isEmpty()
-    {
-      if (top == -1)
-        return true;
-      return false;
-    }
-
-    // 최대인지 확인
-    bool isFull()
-    {
-      if (top-1 == size)
-        return true;
-      return false;
-    }
-};
-
-}
-
-
-
-namespace ok
-{
-
 template<typename T>
 class Stack
 {
@@ -245,6 +43,10 @@ class Stack
     // `typename... Args`는 받는 타입의 갯수가 일정하지 않을 때 여러 개를 받는 것을 의미한다
     template<typename... Args>
     void emplace(Args&&... args);
+
+    template<typename... Args>
+    void emplaceNotForward(Args&&... args);
+
 };
 
 
@@ -286,12 +88,7 @@ T Stack<T>::pop()
   // std::unique_prt 스마트 포인터는 `delete`로 하나의 요소만 해제할 수 없으므로 move로 이동한 후 기본값으로 대체하는 방법
   // `std::move`의 경우 런타임에서 발생하는 것이 아닌 컴파일 과정에서 발생함
   // 간단하게 전체가 이동하는게 아닌 포인터 주소만 이동한 후 이동 생성자에서 초기화가 발생 
-  T popValue = std::move(stackArray[top]);
-
-  // 생성자를 호출하여 초기화하는게 아니라 소멸자만 호출하는 방식
-  //stackArray[top--].~T();
-  //stackArray[top--] = T();
-  top--;
+  T popValue = std::move(stackArray[top--]);
   return popValue;
 }
 
@@ -320,7 +117,7 @@ void Stack<T>::emplace(Args&&... args)
     stackArray[++top] = T(std::forward<Args>(args)...);
 }
 
-}
+
 
 
 
