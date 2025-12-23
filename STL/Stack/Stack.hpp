@@ -92,7 +92,7 @@ ok::Stack<T>::Stack(const Stack<T>& other) : top(other.top), capacity(other.capa
   catch(...)
   {
     std::cout << "복사 생성자 오류 발생" << '\n';
-    for (int j=0; i<i; ++j) std::destroy_at(&this->stackArray[j]);
+    for (int j=0; j<i; ++j) std::destroy_at(&this->stackArray[j]);
     this->alloc.deallocate(this->stackArray, this->capacity);
     throw;
   }
@@ -137,7 +137,7 @@ ok::Stack<T>::~Stack()
 template<typename T> 
 int ok::Stack<T>::size()
 {
-  return top;
+  return top+1;
 }
 
 // Stack이 비어있으면 true
@@ -170,8 +170,11 @@ void ok::Stack<T>::push(const T& value)
 template<typename T>
 void ok::Stack<T>::push(T&& value)
 {
-  if (isFull()) throw std::out_of_range("Error: push할 공간이 없습니다 -> " + std::to_string(top));
-  //stackArray[top] = value;
+  if (isFull()) 
+  {
+    resize();
+    //throw std::out_of_range("Error: push할 공간이 없습니다 -> " + std::to_string(top));
+  }
 
   new (&stackArray[top+1]) T(std::move(value));
   top++;
@@ -181,7 +184,7 @@ void ok::Stack<T>::push(T&& value)
 template<typename T>
 void ok::Stack<T>::pop()
 { 
-  if (isEmpty()) throw std::out_of_range("Error pop, Index Out of Bounds: " + std::to_string(top));
+  if (isEmpty()) throw std::out_of_range("pop Error: pop을 할 공간이 없습니다 -> " + std::to_string(top));
 
   // std::unique_prt 스마트 포인터는 `delete`로 하나의 요소만 해제할 수 없으므로 move로 이동한 후 기본값으로 대체하는 방법
   // `std::move`의 경우 런타임에서 발생하는 것이 아닌 컴파일 과정에서 발생함
@@ -198,7 +201,7 @@ template<typename T>
 T& ok::Stack<T>::peek()
 {
   if (isEmpty()) throw std::out_of_range("Error peek, Index Out of Bounds: " + std::to_string(top));
-  return *stackArray[top];
+  return stackArray[top];
 }
 
 
@@ -209,7 +212,8 @@ void ok::Stack<T>::emplace(Args&&... args)
 {
     if (isFull()) 
     {
-        throw std::out_of_range("Error emplace_push, Index Out of Bounds: " + std::to_string(top));
+      resize();
+      //throw std::out_of_range("Error emplace_push, Index Out of Bounds: " + std::to_string(top));
     }
     new (&stackArray[top+1]) T(std::forward<Args>(args)...);
     top++;
