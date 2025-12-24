@@ -24,25 +24,40 @@ class Stack
 
   private:
     // noexcept는 예외(throw)를 반환하지 않는다는 명시를 의미
-    bool isEmpty() noexcept;
     bool isFull() noexcept; 
     void resize();
 
   public:
     Stack(int size);
 
-    // 이동 생성자
-    Stack(Stack<T>&& other) noexcept;
+    /**
+     * @brief 이동 생성자
+     * @param other R-value값으로 전달받아 호출 Stack에 값을 이동/복사
+     * @note other의 값을 모두 이동/복사 후 초기화 하여 데이터가 소멸되지 않음
+     */
+    Stack(Stack<T>&& other) noexcept; // 이동 생성자
 
-    // 복사 생성자
-    Stack(const Stack<T>& other);
+    /**
+     * @brief 복사 생성자
+     * @param other other의 모든 요소와 상태를 복사하여 가져온다
+     * @throw Placement New로 요소를 복사 중 예외가 발생 시 메모리를 회수하고, 예외를 발생
+     * @note other의 모든 요소를 복사해온다
+     */
+    Stack(const Stack<T>& other);     // 복사 생성자
 
-    // 복사 대입 연산자
-    Stack& operator=(Stack<T> other);
-
+    /**
+     * @brief 복사 대입 연산자 (Copy-and-Swap Idiom 사용)
+     * @param other 값으로 전달받아 내부적으로 복사 생성자를 활용함
+     * @return Stack& 자기 자신에 대한 참조
+     * @note 자기 대입(Self-assignment)과 예외 안전성을 동시에 해결함
+     */
+    Stack& operator=(Stack<T> other); // 복사 대입 연산자
     ~Stack();
 
-    int size();
+    bool isEmpty() noexcept;
+    const int getCapacity() { return capacity; };
+    const int size() { return top+1; };
+
     void push(const T& value);
     void push(T&& value);
     void pop();
@@ -51,22 +66,18 @@ class Stack
     // `typename... Args`는 받는 타입의 갯수가 일정하지 않을 때 여러 개를 받는 것을 의미한다
     template<typename... Args>
     void emplace(Args&&... args);
-
-    template<typename... Args>
-    void emplaceNotForward(Args&&... args);
-
 };
 
 }
 
-// 이동 생성자 
+
 template<typename T> 
 ok::Stack<T>::Stack(Stack<T>&& other) noexcept 
-    : stackArray(other.stackArray),  // 원본의 값들을 가져오기
+    : stackArray(other.stackArray),
       capacity(other.capacity),
       top(other.top)
 {
-    // 원본 값들을 초기화시킴 (안 그러면 원본 소멸 시 메모리가 해제됨)
+    // 원본 값들을 초기화시켜서 원본 Stack 소멸자가 호출되어서 이전/복사된 값들에 영향이 없도록함
     other.stackArray = nullptr;
     other.capacity = 0;
     other.top = -1;
@@ -130,14 +141,6 @@ ok::Stack<T>::~Stack()
 
   if (stackArray != nullptr)
     alloc.deallocate(stackArray, capacity);
-}
-
-
-// 현재 사이즈 반환
-template<typename T> 
-int ok::Stack<T>::size()
-{
-  return top+1;
 }
 
 // Stack이 비어있으면 true
@@ -232,9 +235,10 @@ void ok::Stack<T>::resize()
   T* resizeArray = alloc.allocate(reCapacity);
 
   // 예외 처리를 통해 예외 발생 시 안전하게 할당한 메모리를 반납
+  int i=0;
   try
   {
-    for (int i=0; i<=top; ++i)
+    for (; i<=top; ++i)
     {
       // noexcept를 통해 예외를 발생하지 않음을 명시하는 move를 사용 -> 복사가 아닌 이동이 발생하기 위함
       // 예외를 발생시키면 복사를 사용함
@@ -244,19 +248,17 @@ void ok::Stack<T>::resize()
   }
   catch(const std::exception& e)
   {
-    std::cerr << "resize 실패 : " << e.what() << '\n';
+    for (int j=0; j<i; ++j) std::destroy_at(&resizeArray[j]);
     alloc.deallocate(resizeArray, reCapacity);
     throw;
   }
   
-  for (int i=0; i<=top; ++i)
+  for (i=0; i<=top; ++i)
   {
     std::destroy_at(&stackArray[i]);
   }
 
-  
-  if (stackArray != nullptr)
-    alloc.deallocate(stackArray, capacity);
+  alloc.deallocate(stackArray, capacity);
   stackArray = resizeArray;
   capacity = reCapacity;
 };
