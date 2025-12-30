@@ -1,41 +1,59 @@
+/**
+ * @file Stack.hpp
+ * @author ok
+ * @date 2025-12-30
+ * @brief allocator와 Placament New를 기반으로 한 동적 Stack 라이브러리
+ * @details allocator를 이용하여 메모리 할당과 객체 생성을 분리하고, Placement New를 이용하여 객체 생성과 해제를 이용하여 성능 확보
+ */
+
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <new>
 #include <utility>
 
-/*
-
-emplace를 제대로 구현해보기
-*/
-
 namespace ok 
 {
 
+/**
+ * @class Stack
+ * @brief 동적으로 메모리 자원 할당과 회수를 하는 LIFO 구조 Stack 클래스
+ * @tparam T Stack에 저장될 타입
+ * @details allocate와 Placement New를 이용하여 메모리를 효율적으로 할당과 해제하며, 
+ * 이동, 복사, 복사 대입 생성자를 구현하여 다양한 상황에서 동작하도록 구현 
+ */
 template<typename T>
 class Stack
 {
   private:
     int capacity;
     int top = -1;
-    //std::unique_ptr<T[]> stackArray;  
+
+    /** @brief alloc로 할당한 메모리 공간의 시작 주소  */
     T* stackArray;
+
+    /** @brief Raw Memory를 다루기 위한 객체 */
     std::allocator<T> alloc;
 
   private:
-    // noexcept는 예외(throw)를 반환하지 않는다는 명시를 의미
     bool isFull() noexcept; 
     void resize();
 
   public:
+
+    /**
+     * @brief 기본 생성자
+     * @param size 최초 Stack 크기 설정
+     * @note size만큼 allocate로 공간을 할당
+     */
     Stack(int size);
 
     /**
      * @brief 이동 생성자
      * @param other R-value값으로 전달받아 호출 Stack에 값을 이동/복사
-     * @note other의 값을 모두 이동/복사 후 초기화 하여 데이터가 소멸되지 않음
+     * @note other의 값을 모두 이동/복사 후 초기화 하여 데이터가 소멸되지 않음. 예외를 발생하기 않음을 명시하여 복사와 이동 모두 동작하도록 키워드 명시
      */
-    Stack(Stack<T>&& other) noexcept; // 이동 생성자
+    Stack(Stack<T>&& other) noexcept; 
 
     /**
      * @brief 복사 생성자
@@ -43,27 +61,61 @@ class Stack
      * @throw Placement New로 요소를 복사 중 예외가 발생 시 메모리를 회수하고, 예외를 발생
      * @note other의 모든 요소를 복사해온다
      */
-    Stack(const Stack<T>& other);     // 복사 생성자
+    Stack(const Stack<T>& other);     
 
     /**
      * @brief 복사 대입 연산자 (Copy-and-Swap Idiom 사용)
      * @param other 값으로 전달받아 내부적으로 복사 생성자를 활용함
      * @return Stack& 자기 자신에 대한 참조
-     * @note 자기 대입(Self-assignment)과 예외 안전성을 동시에 해결함
+     * @note 자기 대입과 예외 안전성을 동시에 해결함
      */
-    Stack& operator=(Stack<T> other); // 복사 대입 연산자
+    Stack& operator=(Stack<T> other); 
+
+
+    /**
+     * @brief 소멸자
+     * @note Placemant New로 할당한 각 요소를 모두 destroy_at로 해제한 후, allocate로 할당한 Stack 공간을 모두 dealocate로 자원 회수
+     */
     ~Stack();
 
     bool isEmpty() noexcept;
     const int getCapacity() { return capacity; };
     const int size() { return top+1; };
 
+    /**
+     * @brief Stack 공간에 1개 요소를 복사하여 삽입합니다
+     * @param value Stack 요소의 타입
+     * @note 공간이 가득 찬 상태에서 호출할 경우 resize()가 동작할 수 있음
+     */
     void push(const T& value);
+
+    /**
+     * @brief Stack 공간에 1개 요소를 move하여 삽입합니다
+     * @param value Stack 요소의 R-value 타입
+     * @note 공간이 가득 찬 상태에서 호출할 경우 resize()가 동작할 수 있음
+     */
     void push(T&& value);
+
+    /**
+     * @brief Stack에서 top번째 요소를 제거
+     * @throw 빈 공간에서 호출 시 out_of_range 예외가 발생
+     * @warning 빈 공간에서 호출 금지. 항상 size()로 확인
+     */
     void pop();
+    
+    /**
+     * @brief Stack에서 가상 상단에 있는 요소를 반환합니다
+     * @return Stack의 최상단 요소
+     * @throw 빈 공간에서 호출 시 out_of_range 예외가 발생
+     * @warning 빈 공간에서 호출 금지. 항상 size()로 확인
+     */
     T& peek();
 
-    // `typename... Args`는 받는 타입의 갯수가 일정하지 않을 때 여러 개를 받는 것을 의미한다
+    /**
+     * @brief n개의 생성자 인수를 받아 내부에서 객체를 생성 후 요소를 삽입합니다
+     * @param args n개의 생성자 인수를 받는 타입의 파라미터
+     * @note 공간이 가득 찬 상태에서 호출할 경우 resize()가 동작할 수 있음
+     */
     template<typename... Args>
     void emplace(Args&&... args);
 };
@@ -83,12 +135,10 @@ ok::Stack<T>::Stack(Stack<T>&& other) noexcept
     other.top = -1;
 }
 
-// 복사 생성자 s = Stack(10)
 template<typename T> 
 ok::Stack<T>::Stack(const Stack<T>& other) : top(other.top), capacity(other.capacity)
 {
-  // 생성자는 내부에서 호출 불가
-  //this->Stack(other.capacity);
+  // 원본 객체 크기만큼 메모리 공간을 할당
   stackArray = this->alloc.allocate(this->capacity); 
 
   // i를 따로 정의하는 이유는 catch에서 i번째 까지 만든 객체를 다시 반납하기 위해
@@ -102,6 +152,7 @@ ok::Stack<T>::Stack(const Stack<T>& other) : top(other.top), capacity(other.capa
   }
   catch(...)
   {
+    // 오류 발생 시 i번째까지 할당한 자원을 모두 회수하여 메모리 누수 방지
     std::cout << "복사 생성자 오류 발생" << '\n';
     for (int j=0; j<i; ++j) std::destroy_at(&this->stackArray[j]);
     this->alloc.deallocate(this->stackArray, this->capacity);
@@ -109,97 +160,72 @@ ok::Stack<T>::Stack(const Stack<T>& other) : top(other.top), capacity(other.capa
   }
 }
 
-// 복사 대입 연산자 s=ss
-// other을 복사해서 가져오든. 가져와서 복사를 하든 복사 후에 swap하기 (Copy-and-swap)
 template<typename T> 
 ok::Stack<T>& ok::Stack<T>::operator=(Stack<T> other)
 {
+  // Copy-and-swap 방식으로 안전하게 대입 연산자 복사를 수행
   std::swap(this->stackArray, other.stackArray);
   std::swap(this->capacity, other.capacity);
   std::swap(this->top, other.top);
   return *this;
 }
 
-
-
-// 생성자에서 size를 설정하고, size만큼 T타입의 동적 배열을 unique_ptr로 정의함
 template<typename T> 
-ok::Stack<T>::Stack(int size): capacity(size)
-{ 
-  stackArray = alloc.allocate(capacity);
-  //stackArray = std::make_unique<T[]>(this->size);
-} 
+ok::Stack<T>::Stack(int size): capacity(size) { stackArray = alloc.allocate(capacity); } 
+
 template<typename T>
 ok::Stack<T>::~Stack()
 {
-  // new로 할당하면 delete로 해제를 해야 하며, malloc은 free로
-  // allocator.allocate로 빌리면 allocator.deallocate로 반납해야 한다.
+  // 남아있는 모든 요소(객체)의 소멸자를 호출
   for (int i=0; i<=top; ++i)
   {
     std::destroy_at(&stackArray[i]);
   }
 
+  // Stack 공간을 반납
   if (stackArray != nullptr)
     alloc.deallocate(stackArray, capacity);
 }
 
-// Stack이 비어있으면 true
 template<typename T>
 bool ok::Stack<T>::isEmpty() noexcept { return top == -1; }
 
-// Stack이 꽉차있으면 true
 template<typename T>
 bool ok::Stack<T>::isFull() noexcept { return top >= capacity-1; }
 
-// L-value 공간을 확인 후 삽입
-// L-value는 원본을 참조하는 value가 있으며, stackArray에 복사되어 저장이 된다
 template<typename T>
 void ok::Stack<T>::push(const T& value)
 {
   if (isFull()) 
   {
     resize();
-    //throw std::out_of_range("Error: push할 공간이 없습니다 -> " + std::to_string(top));
   }
-  //stackArray[top] = value;
 
-  // 객체 생성 후 top을 증가
-  // &을 명시하여 주소값을 명확하게 전달함
   new (&stackArray[top+1]) T(value);
   top++;
 }
-// R-value 공간을 확인 후 삽입
-// `&&`는 R-value를 의미하고, R-value는 임시 객체이기에 복사가 아닌 주소만 이동. 힙 영역에서 주소는 그대로고 stackArray에서 해당 주소를 포함한다
+
 template<typename T>
 void ok::Stack<T>::push(T&& value)
 {
   if (isFull()) 
   {
     resize();
-    //throw std::out_of_range("Error: push할 공간이 없습니다 -> " + std::to_string(top));
   }
 
   new (&stackArray[top+1]) T(std::move(value));
   top++;
 }
 
-// 공간을 확인 후 제거
 template<typename T>
 void ok::Stack<T>::pop()
 { 
   if (isEmpty()) throw std::out_of_range("pop Error: pop을 할 공간이 없습니다 -> " + std::to_string(top));
 
-  // std::unique_prt 스마트 포인터는 `delete`로 하나의 요소만 해제할 수 없으므로 move로 이동한 후 기본값으로 대체하는 방법
-  // `std::move`의 경우 런타임에서 발생하는 것이 아닌 컴파일 과정에서 발생함
-  // 간단하게 전체가 이동하는게 아닌 포인터 주소만 이동한 후 이동 생성자에서 초기화가 발생 
-  //T popValue = std::move(stackArray[top]);
-
-  // 현재 메모리 주소만 할당을 해제
   std::destroy_at(&stackArray[top]);
   top--;
 }
 
-// 예외 상황은 throw로 반환하여 스택 풀기가 발생하여 main함수에서 catch로 처리됨
 template<typename T>
 T& ok::Stack<T>::peek()
 {
@@ -207,8 +233,6 @@ T& ok::Stack<T>::peek()
   return stackArray[top];
 }
 
-
-// `typename... Args`는 받는 타입의 갯수가 일정하지 않을 때 여러 개를 받는 것을 의미한다
 template<typename T>
 template<typename... Args>
 void ok::Stack<T>::emplace(Args&&... args)
@@ -216,21 +240,17 @@ void ok::Stack<T>::emplace(Args&&... args)
     if (isFull()) 
     {
       resize();
-      //throw std::out_of_range("Error emplace_push, Index Out of Bounds: " + std::to_string(top));
     }
+
+    // Placement New 방식을 이용하여 객체를 생성과 동시에 메모리 공간에 할당
     new (&stackArray[top+1]) T(std::forward<Args>(args)...);
     top++;
-
-    // `std::forward<타입>()`의 경우 들어온 형태 그대로 넘겨주는 것을 의미
-    // 여러 개의 요소로 이루어진 경우 `std::forward<Args>(args)...`에서 ...을 붙여서 합쳐진 요소를 풀어주는 것이 필요
-    // 컴파일 단계에서 컴파일러가 이를 `T(std::forward<Args>(int), std::forward<Args>(double), std::forward<Args>(string));`으로 함수를 구현한다
-    //stackArray[top] = T(std::forward<Args>(args)...);
-    //top++;
 }
 
 template<typename T>
 void ok::Stack<T>::resize()
 {
+  // 기존 공간보다 2배 큰 메모리 공간을 할당
   int reCapacity = capacity * 2;
   T* resizeArray = alloc.allocate(reCapacity);
 
@@ -240,25 +260,28 @@ void ok::Stack<T>::resize()
   {
     for (; i<=top; ++i)
     {
-      // noexcept를 통해 예외를 발생하지 않음을 명시하는 move를 사용 -> 복사가 아닌 이동이 발생하기 위함
-      // 예외를 발생시키면 복사를 사용함
-      //new (&resizeArray[i]) T(std::move(stackArray[i]));
+      // T객체의 이동 생성자가 noexcept인 경우 이동하며, noexcept 키워드가 없다면 안전하게 복사를 수행하는 move_if_noexcept
       new (&resizeArray[i]) T(std::move_if_noexcept(stackArray[i]));
     }
   }
   catch(const std::exception& e)
   {
+    // 예외 발생 시 i번째까지 할당한 T객체 모두 소멸자를 호출
     for (int j=0; j<i; ++j) std::destroy_at(&resizeArray[j]);
+
+    // 2배 늘렸던 메모리 공간을 다시 회수
     alloc.deallocate(resizeArray, reCapacity);
     throw;
   }
   
+  // 성공적으로 resize가 되면, 기존 공간 객체들의 소멸자를 호출 및 기존 메모리 공간을 회수
   for (i=0; i<=top; ++i)
   {
     std::destroy_at(&stackArray[i]);
   }
-
   alloc.deallocate(stackArray, capacity);
+  
+  // 변경된 메모리 공간 T*와 capacity를 설정
   stackArray = resizeArray;
   capacity = reCapacity;
 };
