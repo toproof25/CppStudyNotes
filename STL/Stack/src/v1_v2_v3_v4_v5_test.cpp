@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <psapi.h>
 
-#include "v1_v5_stack.hpp"
+#include "../inc/v1_v5_stack.hpp"
 
 using namespace std::chrono;
 
@@ -45,7 +45,7 @@ size_t GetMemoryUsage() {
         std::cout << "\n"; \
     }
 
-const int TEST_COUNT = 20000000; 
+const int TEST_COUNT = 30000000; 
 
 int main()
 {
@@ -58,22 +58,14 @@ int main()
     std::cout << "--- [STACK] Test ---\n";
     
     
-    // v1 Stack
-    v1::Stack v1Stack(TEST_COUNT);
-
-    // v2 Stack
-    v2::Stack v2Stack(TEST_COUNT);
-    
-    // v3 Stack
-    v3::Stack v3Stack(TEST_COUNT);
-
-    // v4 Stack
-    v4::Stack<HeavyObject> v4Stack(TEST_COUNT);
-
-    // STL Stack
-    std::stack<HeavyObject> stlStack;
-
     // 1-1. Push (L-value Copy)
+    v1::Stack v1Stack(TEST_COUNT);
+    v2::Stack v2Stack(TEST_COUNT);
+    v3::Stack v3Stack(TEST_COUNT);
+    v4::Stack<HeavyObject> v4Stack(TEST_COUNT);
+    v5::Stack<HeavyObject> v5Stack(TEST_COUNT);
+    std::stack<HeavyObject> stlStack;
+    
     std::cout << "\n1. Push L-value\n";
     MEASURE("v1 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
@@ -93,6 +85,11 @@ int main()
     MEASURE("v4 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
             v4Stack.push(sourceObj);
+        }
+    );
+    MEASURE("v5 Stack push test", 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v5Stack.push(sourceObj);
         }
     );
     MEASURE("STL Stack push test", 
@@ -129,14 +126,14 @@ int main()
         }
     );
 
-    // v1 Stack
+    // 1-3. Push (R-value Copy)
     v1::Stack v1StackR_Value(TEST_COUNT);
     v2::Stack v2StackR_Value(TEST_COUNT);
     v3::Stack v3StackR_Value(TEST_COUNT);
     v4::Stack<HeavyObject> v4StackR_Value(TEST_COUNT);
+    v5::Stack<HeavyObject> v5StackR_Value(TEST_COUNT);
     std::stack<HeavyObject> stlStackR_Value;
 
-    // 1-3. Push (R-value Copy)
     std::cout << "\n3. Push R-value\n";
     MEASURE("v1 Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
@@ -158,11 +155,45 @@ int main()
             v4StackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
         }
     );
+    MEASURE("v5 Stack push test", 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v5StackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
+        }
+    );
     MEASURE("STL Stack push test", 
         for(int i=0; i<TEST_COUNT; ++i) {
             stlStackR_Value.push(HeavyObject(99, "안녕하세요. 구현한 Stack을 테스트하겠습니다."));
         }
     );
+
+    // 1-4. Emplace
+    v4::Stack<HeavyObject> v4StackEmplace(TEST_COUNT);
+    v5::Stack<HeavyObject> v5StackEmplaceNotForward(TEST_COUNT);
+    v5::Stack<HeavyObject> v5StackEmplace(TEST_COUNT);
+    std::stack<HeavyObject> stlStackEmplace;
+
+    std::cout << "\n4. Emplace\n";
+    MEASURE("v4 Stack", 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v4StackEmplace.emplace(99, std::move(std::string("emplcae 문자열 테스트. 조금 길게 문자열을 입력해보기")));
+        }
+    );
+    MEASURE("v5 Stack Emplace Not Forward Test" , 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v5StackEmplaceNotForward.emplaceNotForward(99, std::move(std::string("emplcae 문자열 테스트. 조금 길게 문자열을 입력해보기")));
+        }
+    );
+    MEASURE("v5 Stack Emplace Test" , 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            v5StackEmplace.emplace(99, std::move(std::string("emplcae 문자열 테스트. 조금 길게 문자열을 입력해보기")));
+        }
+    );
+    MEASURE("STL Stack Emplace Test", 
+        for(int i=0; i<TEST_COUNT; ++i) {
+            stlStackEmplace.emplace(99, std::move(std::string("emplcae 문자열 테스트. 조금 길게 문자열을 입력해보기")));
+        }
+    );
+
 
 
     return 0;

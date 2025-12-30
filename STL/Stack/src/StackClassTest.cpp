@@ -1,3 +1,5 @@
+// Gemini 제작
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -10,7 +12,7 @@
 #include <type_traits>
 #include <windows.h>
 #include <psapi.h>
-#include "Stack.hpp"
+#include "../inc/Stack.hpp"
 
 using namespace std;
 using namespace std::chrono;
