@@ -1,6 +1,6 @@
 /**
  * @file Stack.hpp
- * @author ok
+ * @author toproof(kmnlmn123@gmail.com)
  * @date 2025-12-30
  * @brief allocator와 Placament New를 기반으로 한 동적 Stack 라이브러리
  * @details allocator를 이용하여 메모리 할당과 객체 생성을 분리하고, Placement New를 이용하여 객체 생성과 해제를 이용하여 성능 확보
