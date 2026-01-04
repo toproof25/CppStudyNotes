@@ -1,13 +1,13 @@
 /**
  * @file Queue.hpp
  * @author toproof(kmnlmn123@gmail.com)
- * @date 2026-01-01
+ * @date 2026-01-04
  * @brief Queue STL 직접 구현해보기
- * @version 1.0.0
+ * @version 2.0.0
  * @details 원형 Queue 방식으로 FIFO 구조를 구현.
- * 스마트 포인터 unique_ptr을 이용하여 메모리를 관리.
  * 
- * 
+ * version 1.0.0 : unique_ptr을 이용하여 메모리 관리를 하는 Queue Class
+ * version 2.0.0 : allocator와 Placement New방식을 이용하여 Raw 메모리 관리
  */
 
 #include <iostream>
@@ -34,7 +34,10 @@ class Queue
     int backIndex = 0;
     int size = 0;
     int capacity = 0;
-    std::unique_ptr<T[]> queueArray;  
+
+    //std::unique_ptr<T[]> queueArray;  
+    T* queueArray;
+    std::allocator<T> alloc;
 
   public:
     /**
@@ -119,20 +122,33 @@ class Queue
 template<typename T> 
 Queue<T>::Queue(int capacity): capacity(capacity)
 { 
-  queueArray = std::make_unique<T[]>(this->capacity); 
+  // 생성자 메모리 공간 할당을 allocator 방식으로 변경
+  //queueArray = std::make_unique<T[]>(this->capacity); 
+  queueArray = alloc.allocate(capacity);
+  
+  T** qq = &queueArray;
+  std::uninitialized_fill(queueArray, capacity, nullptr);
+
+  for (int i=0; i<capacity; ++i)
+  {
+    if (queueArray[i] == nullptr)
+    {
+      std::cout << "nullptr입니다" << '\n';
+    }
+  }
 }
 
 template<typename T> 
 Queue<T>::Queue(Queue<T>&& other) noexcept : 
+  queueArray(other.queueArray),
   frontIndex(other.frontIndex),
   backIndex(other.backIndex),
   size(other.size),
   capacity(other.capacity)
 {
-  // 1. other의 unique_ptr을 이전
-  queueArray = std::move(other.queueArray);
 
-  // 2. other값 초기화
+  // other값 초기화하여 원본 메모리 주소 소멸되는 것을 방지
+  other.queueArray = nullptr;
   other.frontIndex = 0;
   other.backIndex = 0;
   other.size = 0;
@@ -146,7 +162,9 @@ Queue<T>::Queue(const Queue<T>& other) :
   size(other.size),
   capacity(other.capacity)
 {
-  queueArray = std::make_unique<T[]>(this->capacity);
+  // 메모리 공간 할당을 alloc로 변경
+  //queueArray = std::make_unique<T[]>(this->capacity);
+  queueArray = alloc.allocate(this->capacity);
 
   int i=0;
   try
@@ -160,6 +178,8 @@ Queue<T>::Queue(const Queue<T>& other) :
   {
     // unique_ptr이 알아서 delete를 수행하여 따로 메모리 관리 불필요
     std::cerr << e.what() << '\n';
+    
+    alloc.deallocate(capacity);
     throw;
   }
 }
