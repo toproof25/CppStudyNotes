@@ -167,11 +167,14 @@ Queue<T>::Queue(const Queue<T>& other) :
 template<typename T>
 Queue<T>& Queue<T>::operator=(Queue<T> other)
 {
+  // 1. copy and swap
   std::swap(queueArray, other.queueArray);
   std::swap(frontIndex, other.frontIndex);
   std::swap(backIndex, other.backIndex);
   std::swap(capacity, other.capacity);
   std::swap(size, other.size);
+
+  // 2. 자신을 리턴하여 연쇄 작용 `q = qq = qqq`가 동작하도록 리턴
   return *this;
 }
 
@@ -221,7 +224,7 @@ void Queue<T>::pop()
 { 
   if (isEmpty()) throw std::out_of_range("Error pop, Index Out of Bounds: " + std::to_string(frontIndex));
 
-  std::destroy_at(&queueArray[frontIndex]);
+  //std::destroy_at(&queueArray[frontIndex]);
   frontIndex = (frontIndex+1) % capacity;
   size--;
 }
