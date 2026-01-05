@@ -1,7 +1,7 @@
 /**
  * @file Queue.hpp
  * @author toproof(kmnlmn123@gmail.com)
- * @date 2026-01-04
+ * @date 2026-01-05
  * @brief Queue STL 직접 구현해보기
  * @version 2.0.0
  * @details 원형 Queue 방식으로 FIFO 구조를 구현.
