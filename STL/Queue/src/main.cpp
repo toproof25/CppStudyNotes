@@ -6,6 +6,7 @@ int main()
 
   std::cout << "*********************1. 원형 Queue push, pop 테스트*********************" << '\n';
 
+  {
   Queue<int> queue(10); 
  
   try
@@ -76,6 +77,7 @@ int main()
   
   Queue<int> move_queue(std::move(copy));
   std::cout << "move_queue.getSize : " << move_queue.getSize() << '\n';
-
+  }
+  
   return 0; 
 }
