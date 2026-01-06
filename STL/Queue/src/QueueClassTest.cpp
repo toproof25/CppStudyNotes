@@ -234,7 +234,7 @@ void Test01_BasicConstructor() {
     {
         Queue<int> q(10);
         AssertTest(q.isEmpty() == true, "초기 상태 isEmpty() == true");
-        AssertTest(q.getSize() == 1, "초기 getSize() == 1");
+        AssertTest(q.getSize() == 0, "초기 getSize() == 0");
     }
     
     PrintSubSection("1.2 다양한 크기의 큐 생성");
@@ -452,10 +452,10 @@ void Test05_CopyConstructor() {
         Queue<vector<int>> q1(3);
         q1.push(vector<int>{1, 2, 3});
         q1.push(vector<int>{4, 5});
+        AssertTest(q1.front().size() == 3, "복사할 객체 vector 확인");
         
         Queue<vector<int>> q2(q1);
-        
-        AssertTest(q2.front().size() == 3, "복사본 vector 확인");
+        AssertTest(q2.front().size() == 3, "복사될 객체 vector 확인");
     }
     
     PrintSubSection("5.4 빈 큐 복사");
@@ -598,44 +598,31 @@ void Test09_EmplaceOperation() {
     }
 }
 
-void Test10_CircularOperation() {
-    PrintSection("테스트 10: 원형 큐 동작 (Wrap Around) 및 Full 상태");
+void Test10_ResizeBasic() {
+    PrintSection("테스트 10: 자동 Resize 동작 확인");
 
-    PrintSubSection("10.1 원형 큐 동작 확인");
+    PrintSubSection("10.1 용량 증가 확인");
     {
-        Queue<int> q(3);
-        q.push(1);
-        q.push(2);
-        q.push(3);
-        
-        AssertTest(q.isFull(), "큐 가득 찼음");
-        
-        q.pop();
-        AssertTest(!q.isFull(), "공간 생김");
-        
-        q.push(4);
-        AssertTest(q.isFull(), "Wrap Around Push 성공");
-        
-        AssertTest(q.front() == 2, "FIFO 순서 유지 (2, 3, 4)");
-        q.pop();
-        AssertTest(q.front() == 3, "FIFO 순서 유지 (3, 4)");
-        q.pop();
-        AssertTest(q.front() == 4, "FIFO 순서 유지 (4)");
-    }
-
-    PrintSubSection("10.2 Full 예외 처리");
-    {
+        // 초기 용량 2
         Queue<int> q(2);
+        size_t initialCap = q.getCapacity();
+
         q.push(1);
         q.push(2);
         
-        bool caught = false;
-        try {
-            q.push(3);
-        } catch (const std::out_of_range&) {
-            caught = true;
-        }
-        AssertTest(caught, "Full 상태 Push 시 예외 발생");
+        AssertTest(q.isFull(), "초기 용량 도달");
+
+        // 여기서 Resize 발생!
+        q.push(3);
+
+        AssertTest(!q.isFull(), "Resize 후 Full 상태 해제됨");
+        AssertTest(q.getCapacity() == initialCap * 2, "용량이 2배로 증가함 (2 -> 4)");
+        AssertTest(q.getSize() == 3, "데이터 개수 확인");
+        
+        // 데이터 무결성 확인
+        AssertTest(q.front() == 1, "데이터 1 유지"); q.pop();
+        AssertTest(q.front() == 2, "데이터 2 유지"); q.pop();
+        AssertTest(q.front() == 3, "새 데이터 3 확인"); q.pop();
     }
 }
 
@@ -772,30 +759,141 @@ void Test14_ComplexTypes() {
     }
 }
 
+// 성능 테스트를 위한 무거운 객체 (복사 비용 유발)
+struct HeavyObject {
+    std::vector<int> data;
+    HeavyObject(int size = 100) : data(size, 1) {} // 생성 비용
+};
+
 void Test15_PerformanceComparison() {
-    PrintSection("테스트 15: 성능 비교 (Queue vs std::queue)");
+    PrintSection("테스트 15: 종합 성능 비교 (Queue vs std::queue)");
     
-    const int N = 100000;
+    // 테스트 데이터 개수 설정
+    // *주의* std::queue는 덱(deque) 기반이라 재할당이 빠르지만, 
+    // 직접 만든 Queue는 resize 비용이 크므로, 
+    // 순수 로직 성능 비교를 위해 resize가 발생하지 않도록 넉넉히 잡는 경우와, 
+    // 발생시키는 경우를 나누어 볼 수도 있습니다. 여기서는 N을 적절히 조절하세요.
+    const int N = 10000000; // 1000만 건
+
+    cout << "  데이터 개수: " << N << "개" << endl << endl;
+
+    // ---------------------------------------------------------
+    // Case 1: 기본 타입 (int) Push 성능
+    // ---------------------------------------------------------
+    PrintSubSection("15.1 [int] Push (삽입) 속도");
     
-    cout << "  데이터 개수: " << N << "개 (int)" << endl << endl;
-    
-    PrintSubSection("15.1 Queue<int> 성능");
-    MEASURE("Queue Push",
-        Queue<int> q(N);
+    MEASURE("ok::Queue<int> Push",
+        Queue<int> q(N); // 메모리 미리 확보 (resize 비용 제외)
         for (int i = 0; i < N; i++) {
             q.push(i);
         }
     );
-    
-    PrintSubSection("15.2 std::queue<int> 성능");
-    MEASURE("std::queue Push",
-        std::queue<int> q;
+
+    MEASURE("std::queue<int> Push",
+        std::queue<int> q; // deque는 자동 블록 할당
         for (int i = 0; i < N; i++) {
             q.push(i);
+        }
+    );
+
+    // ---------------------------------------------------------
+    // Case 2: 기본 타입 (int) Pop 성능
+    // ---------------------------------------------------------
+    PrintSubSection("15.2 [int] Pop (제거) 속도");
+    
+    {
+        // 미리 채워두기
+        Queue<int> myQ(N);
+        std::queue<int> stlQ;
+        for(int i=0; i<N; ++i) {
+            myQ.push(i);
+            stlQ.push(i);
+        }
+
+        MEASURE("ok::Queue<int> Pop",
+            while(!myQ.isEmpty()) {
+                myQ.pop();
+            }
+        );
+
+        MEASURE("std::queue<int> Pop",
+            while(!stlQ.empty()) {
+                stlQ.pop();
+            }
+        );
+    }
+
+    // ---------------------------------------------------------
+    // Case 3: 무거운 객체 (HeavyObject) Push 성능 (복사/이동 비용)
+    // ---------------------------------------------------------
+    PrintSubSection("15.3 [HeavyObject] Push (이동 시맨틱) 속도");
+    // 벡터를 멤버로 가진 객체를 통해 메모리 이동 효율성 체크
+
+    MEASURE("ok::Queue<Heavy> Push",
+        Queue<HeavyObject> q(N);
+        for (int i = 0; i < N; i++) {
+            q.push(HeavyObject()); // R-value Push (Move)
+        }
+    );
+
+    MEASURE("std::queue<Heavy> Push",
+        std::queue<HeavyObject> q;
+        for (int i = 0; i < N; i++) {
+            q.push(HeavyObject()); // R-value Push (Move)
+        }
+    );
+
+    // ---------------------------------------------------------
+    // Case 4: Emplace vs Push 비교
+    // ---------------------------------------------------------
+    PrintSubSection("15.4 [Emplace] 직접 생성 최적화");
+    // Emplace는 임시 객체 생성 및 이동 비용을 아예 없애야 함
+
+    MEASURE("ok::Queue Emplace",
+        Queue<HeavyObject> q(N);
+        for (int i = 0; i < N; i++) {
+            // 인자만 전달하여 내부 생성
+            q.emplace(100); 
+        }
+    );
+
+    MEASURE("std::queue Emplace",
+        std::queue<HeavyObject> q;
+        for (int i = 0; i < N; i++) {
+            q.emplace(100);
+        }
+    );
+
+    // ---------------------------------------------------------
+    // Case 5: 순환(Circular) 패턴 성능 (Push & Pop 반복)
+    // ---------------------------------------------------------
+    PrintSubSection("15.5 [Circular Pattern] Push & Pop 반복");
+    // 큐를 가득 채우지 않고, 일정 크기를 유지하며 계속 돌리는 시나리오
+    // ok::Queue는 '%' 연산 비용이 발생하고, std::queue는 블록 해제/할당 비용이 발생함
+    
+    const int LoopCount = 5000000;
+    
+    MEASURE("ok::Queue Circular",
+        Queue<int> q(1000); // 크기 1000 고정
+        // 처음에 좀 채워둠
+        for(int i=0; i<500; ++i) q.push(i);
+        
+        for (int i = 0; i < LoopCount; i++) {
+            q.push(i);
+            q.pop();
+        }
+    );
+
+    MEASURE("std::queue Circular",
+        std::queue<int> q;
+        for(int i=0; i<500; ++i) q.push(i);
+        
+        for (int i = 0; i < LoopCount; i++) {
+            q.push(i);
+            q.pop();
         }
     );
 }
-
 void Test16_StressTest() {
     PrintSection("테스트 16: 스트레스 테스트 (순환)");
     
@@ -854,6 +952,88 @@ void Test18_RealWorldScenarios() {
     }
 }
 
+void Test19_ComplexResize() {
+    PrintSection("테스트 19: 원형 상태(Wrap Around)에서의 Resize");
+
+    PrintSubSection("19.1 데이터 선형화(Linearization) 검증");
+    {
+        /*
+         * 시나리오:
+         * 1. 크기 3인 큐 생성
+         * 2. [1, 2, 3] Push (Full)
+         * 3. 1, 2 Pop -> [Empty, Empty, 3] (Front: 2, Back: 0)
+         * 4. 4, 5 Push -> [4, 5, 3] (Wrap Around 발생 상태!)
+         * 5. 6 Push -> Resize 발생!
+         * * 기대 결과:
+         * 메모리가 [3, 4, 5, 6, Empty, Empty] 순서로 펴져야 함.
+         */
+        
+        Queue<int> q(3);
+        
+        // 1. 채우기
+        q.push(1);
+        q.push(2);
+        q.push(3);
+
+        // 2. 앞부분 비우기
+        q.pop(); // 1 제거
+        q.pop(); // 2 제거
+        // 현재 상태: [?, ?, 3] (논리적 순서: 3)
+
+        // 3. 뒤에 채워서 앞으로 감기 (Wrap Around)
+        q.push(4);
+        q.push(5);
+        // 현재 상태(물리적): [4, 5, 3] (논리적 순서: 3 -> 4 -> 5)
+        
+        AssertTest(q.isFull(), "Wrap Around 상태로 가득 참");
+        AssertTest(q.front() == 3, "Front값 확인");
+
+        // 4. Resize 트리거
+        cout << "    [Info] Resize 트리거 (3 -> 6)" << endl;
+        q.push(6);
+
+        // 5. 검증
+        size_t newCap = q.getCapacity();
+        AssertTest(newCap == 6, "용량 6으로 증가");
+        AssertTest(q.getSize() == 4, "데이터 개수 4개");
+
+        // 순서대로 나오는지 확인 (선형화가 잘못되면 여기서 순서가 꼬임)
+        int expected[] = {3, 4, 5, 6};
+        for(int val : expected) {
+            if(q.isEmpty()) {
+                AssertTest(false, "데이터 유실 발생!");
+                break;
+            }
+            int frontVal = q.front();
+            bool match = (frontVal == val);
+            AssertTest(match, "데이터 순서 검증", "기대값: " + to_string(val) + ", 실제값: " + to_string(frontVal));
+            q.pop();
+        }
+    }
+
+    PrintSubSection("19.2 대량 Resize 스트레스 테스트");
+    {
+        // 10000개까지 늘어나며 데이터가 깨지지 않는지 확인
+        Queue<int> q(2);
+        for(int i=0; i<10000; ++i) {
+            q.push(i);
+        }
+
+        AssertTest(q.getSize() == 10000, "10000개 삽입 성공");
+        
+        bool integrity = true;
+        for(int i=0; i<10000; ++i) {
+            if(q.front() != i) {
+                integrity = false;
+                break;
+            }
+            q.pop();
+        }
+        AssertTest(integrity, "10000개 데이터 무결성 및 순서 확인");
+    }
+}
+
+
 // ==========================================
 // [메인 함수]
 // ==========================================
@@ -872,8 +1052,7 @@ int main() {
         Test07_CopyAssignment();
         Test08_MoveAssignment();
         Test09_EmplaceOperation();
-        Test10_CircularOperation();
-        Test11_ExceptionSafety();
+        Test10_ResizeBasic();        
         Test12_MemoryManagement();
         Test13_EdgeCases();
         Test14_ComplexTypes();
@@ -881,6 +1060,10 @@ int main() {
         Test16_StressTest();
         Test17_StatePredictability();
         Test18_RealWorldScenarios();
+        Test19_ComplexResize();
+
+        // Test11_ExceptionSafety();
+        // 해당 테스트는 고정 크기일 경우 push 중 예외가 발생하는 것을 테스트 -> 동적 크기로 수정하여 예외가 발생하지 않아 문제가 된다.
         
         cout << "\n" << GREEN << "╔═══════════════════════════════════════════════════════════╗" << RESET << endl;
         cout << GREEN << "║                    테스트 결과 요약                           ║" << RESET << endl;

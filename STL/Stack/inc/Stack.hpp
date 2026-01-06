@@ -26,7 +26,7 @@ template<typename T>
 class Stack
 {
   private:
-    int capacity;
+    size_t capacity;
     int top = -1;
 
     /** @brief alloc로 할당한 메모리 공간의 시작 주소  */
@@ -46,7 +46,7 @@ class Stack
      * @param size 최초 Stack 크기 설정
      * @note size만큼 allocate로 공간을 할당
      */
-    Stack(int size);
+    Stack(size_t capacity);
 
     /**
      * @brief 이동 생성자
@@ -79,7 +79,7 @@ class Stack
     ~Stack();
 
     bool isEmpty() noexcept;
-    const int getCapacity() { return capacity; };
+    const size_t getCapacity() { return capacity; };
     const int size() { return top+1; };
 
     /**
@@ -171,7 +171,7 @@ ok::Stack<T>& ok::Stack<T>::operator=(Stack<T> other)
 }
 
 template<typename T> 
-ok::Stack<T>::Stack(int size): capacity(size) { stackArray = alloc.allocate(capacity); } 
+ok::Stack<T>::Stack(size_t capacity): capacity(capacity) { stackArray = alloc.allocate(capacity); } 
 
 template<typename T>
 ok::Stack<T>::~Stack()
@@ -191,7 +191,7 @@ template<typename T>
 bool ok::Stack<T>::isEmpty() noexcept { return top == -1; }
 
 template<typename T>
-bool ok::Stack<T>::isFull() noexcept { return top >= capacity-1; }
+bool ok::Stack<T>::isFull() noexcept { return top+1 >= capacity; }
 
 template<typename T>
 void ok::Stack<T>::push(const T& value)
