@@ -48,6 +48,12 @@ class Queue
     Queue(int capacity);
 
     /**
+     * @brief 소멸자
+     * @details deallocate로 할당한 공간을 모두 회수
+     */
+    ~Queue();
+
+    /**
      * @brief 이동 생성자
      * @param other 이동할 Queue 객체
      * @details 메모리 주소 교체를 통해 이동
@@ -125,18 +131,24 @@ Queue<T>::Queue(int capacity): capacity(capacity)
   // 생성자 메모리 공간 할당을 allocator 방식으로 변경
   //queueArray = std::make_unique<T[]>(this->capacity); 
   queueArray = alloc.allocate(capacity);
-  
-  T** qq = &queueArray;
-  std::uninitialized_fill(queueArray, capacity, nullptr);
-
-  for (int i=0; i<capacity; ++i)
-  {
-    if (queueArray[i] == nullptr)
-    {
-      std::cout << "nullptr입니다" << '\n';
-    }
-  }
 }
+
+template<typename T> 
+Queue<T>::~Queue()
+{ 
+  
+  // 1. 유효한 객체만 소멸
+  for (int i=0; i<size; ++i)
+  {
+    std::destroy_at(&queueArray[frontIndex]);
+    frontIndex = (frontIndex+1) % capacity;
+  }
+
+  // 2. queueArray값이 이동 생성자 등에 의해 초기화된 상태가 아니라면 Queue 전체 메모리 회수
+  if (queueArray != nullptr)
+    alloc.deallocate(queueArray, capacity);
+}
+
 
 template<typename T> 
 Queue<T>::Queue(Queue<T>&& other) noexcept : 
@@ -162,24 +174,29 @@ Queue<T>::Queue(const Queue<T>& other) :
   size(other.size),
   capacity(other.capacity)
 {
-  // 메모리 공간 할당을 alloc로 변경
-  //queueArray = std::make_unique<T[]>(this->capacity);
+  // 1. other의 메모리 공간 크기만큼 할당
   queueArray = alloc.allocate(this->capacity);
 
+  // 2. 유효한 T 객체만 복사 할당
   int i=0;
+  int fIndex=frontIndex;
   try
-  {
-    for (; i<capacity; ++i)
+  {    
+    for (; i<size; ++i)
     {
-      queueArray[i] = other.queueArray[i];
+      new (queueArray+fIndex) T(other.queueArray[fIndex]);
+      fIndex = (fIndex+1) % capacity;
     }
   }
   catch(const std::exception& e)
   {
-    // unique_ptr이 알아서 delete를 수행하여 따로 메모리 관리 불필요
-    std::cerr << e.what() << '\n';
-    
-    alloc.deallocate(capacity);
+    // try 코드에서 생성한 객체만 제거 후 Queue 메모리 공간 회수
+    for(--i; i>=0; --i)
+    {
+      std::destroy_at(&queueArray[fIndex]);
+      fIndex = (fIndex-1) % capacity;
+    }
+    alloc.deallocate(queueArray, capacity);
     throw;
   }
 }
@@ -216,7 +233,7 @@ bool Queue<T>::isFull() noexcept
 template<typename T>
 int Queue<T>::getSize() noexcept
 {
-  return size+1;
+  return size;
 }
 
 template<typename T>
@@ -224,7 +241,7 @@ void Queue<T>::push(const T& value)
 {
   if (isFull()) throw std::out_of_range("Error Push copy, Index Out of Bounds: " + std::to_string(backIndex));
 
-  queueArray[backIndex] = value;
+  new (&queueArray[backIndex]) T(value);
   backIndex = (backIndex+1) % capacity;
   size++;
 }
@@ -234,7 +251,7 @@ void Queue<T>::push(T&& value)
 {
   if (isFull()) throw std::out_of_range("Error Push move, Index Out of Bounds: " + std::to_string(backIndex));
 
-  queueArray[backIndex] = std::move(value);
+  new (&queueArray[backIndex]) T(std::move(value));
   backIndex = (backIndex+1) % capacity;
   size++;
 }
@@ -244,7 +261,7 @@ void Queue<T>::pop()
 { 
   if (isEmpty()) throw std::out_of_range("Error pop, Index Out of Bounds: " + std::to_string(frontIndex));
 
-  //std::destroy_at(&queueArray[frontIndex]);
+  std::destroy_at(&queueArray[frontIndex]);
   frontIndex = (frontIndex+1) % capacity;
   size--;
 }
@@ -253,7 +270,7 @@ template<typename T>
 const T& Queue<T>::front()
 {
   if (isEmpty()) throw std::out_of_range("Error front, Index Out of Bounds: " + std::to_string(frontIndex+1));
-  return queueArray[frontIndex % capacity];
+  return queueArray[frontIndex];
 }
 
 template<typename T>
@@ -262,7 +279,7 @@ void Queue<T>::emplace(Args&&... args)
 {
     if (isFull()) throw std::out_of_range("Error emplace_push, Index Out of Bounds: " + std::to_string(backIndex));
     
-    queueArray[backIndex] = T(std::forward<Args>(args)...);
+    new (&queueArray[backIndex]) T(std::forward<Args>(args)...);
     backIndex = (backIndex+1) % capacity;
     size++;
 }
