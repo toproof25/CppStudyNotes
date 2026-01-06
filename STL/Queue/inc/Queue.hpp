@@ -1,8 +1,8 @@
 /**
  * @file Queue.hpp
  * @author toproof(kmnlmn123@gmail.com)
- * @date 2026-01-05
- * @brief Queue STL 직접 구현해보기
+ * @date 2026-01-06
+ * @brief Raw Memory관리를 바탕으로 Queue STL 직접 구현해보기
  * @version 2.0.0
  * @details 원형 Queue 방식으로 FIFO 구조를 구현.
  * 
@@ -17,13 +17,14 @@
 
 /**
  * @class Queue
- * @brief First IN, First Out 구조의 원형 큐 클래스
+ * @brief First In, First Out 구조의 원형 큐 클래스
  * @tparam Queue의 요소의 타입
- * @details 원형 큐로 구현
+ * @details allocator와 Placement New를 이용한 Raw Memory 원형 큐로 구현
  * push: 요소 삽입
  * pop: 요소 제거
  * front: 맨 앞 요소 반환
  * emplace: 인자를 받아 객체 생성 후 요소 삽입 (객체를 내부에서 생성)
+ * getSize: 현재 요소 수를 반환
  * 
  */
 template<typename T>
@@ -35,7 +36,6 @@ class Queue
     int size = 0;
     int capacity = 0;
 
-    //std::unique_ptr<T[]> queueArray;  
     T* queueArray;
     std::allocator<T> alloc;
 
@@ -43,13 +43,13 @@ class Queue
     /**
      * @brief 기본 생성자
      * @param capacity 초기 크기 설정
-     * @details make_unique<T[]>(capacity)를 호출하여 메모리 공간을 할당
+     * @details capacity만큼 allocate로 빈 메모리 공간을 할당
      */
     Queue(int capacity);
 
     /**
      * @brief 소멸자
-     * @details deallocate로 할당한 공간을 모두 회수
+     * @details 모든 객체 소멸자 호출 및 메모리 공간 회수 
      */
     ~Queue();
 
@@ -128,8 +128,6 @@ class Queue
 template<typename T> 
 Queue<T>::Queue(int capacity): capacity(capacity)
 { 
-  // 생성자 메모리 공간 할당을 allocator 방식으로 변경
-  //queueArray = std::make_unique<T[]>(this->capacity); 
   queueArray = alloc.allocate(capacity);
 }
 
