@@ -3,7 +3,7 @@
  * @author toproof(kmnlmn123@gmail.com)
  * @date 2026-01-06
  * @brief Raw Memory관리를 바탕으로 Queue STL 직접 구현해보기
- * @version 2.0.0
+ * @version 2.1.0
  * @details 원형 Queue 방식으로 FIFO 구조를 구현.
  * 
  * version 1.0.0 : unique_ptr을 이용하여 메모리 관리를 하는 Queue Class
