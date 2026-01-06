@@ -234,7 +234,7 @@ void Test01_BasicConstructor() {
     {
         Queue<int> q(10);
         AssertTest(q.isEmpty() == true, "초기 상태 isEmpty() == true");
-        AssertTest(q.getSize() == 1, "초기 getSize() == 1");
+        AssertTest(q.getSize() == 0, "초기 getSize() == 0");
     }
     
     PrintSubSection("1.2 다양한 크기의 큐 생성");
@@ -452,10 +452,10 @@ void Test05_CopyConstructor() {
         Queue<vector<int>> q1(3);
         q1.push(vector<int>{1, 2, 3});
         q1.push(vector<int>{4, 5});
+        AssertTest(q1.front().size() == 3, "복사할 객체 vector 확인");
         
         Queue<vector<int>> q2(q1);
-        
-        AssertTest(q2.front().size() == 3, "복사본 vector 확인");
+        AssertTest(q2.front().size() == 3, "복사될 객체 vector 확인");
     }
     
     PrintSubSection("5.4 빈 큐 복사");
