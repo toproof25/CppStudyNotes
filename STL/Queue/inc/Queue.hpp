@@ -8,6 +8,7 @@
  * 
  * version 1.0.0 : unique_ptr을 이용하여 메모리 관리를 하는 Queue Class
  * version 2.0.0 : allocator와 Placement New방식을 이용하여 Raw 메모리 관리
+ * vwesion 2.1.0 : resize함수를 구현하여 동적 크기 원형 큐를 구현
  */
 
 #include <iostream>
@@ -38,6 +39,14 @@ class Queue
 
     T* queueArray;
     std::allocator<T> alloc;
+
+  private:
+    /**
+     * @brief Queue 최대 사이즈를 늘립니다
+     * @details Full 상태에서 push할 경우 호출되는 함수
+     * - 기존 capacity에서 2배만큼 크기가 증가합니다
+     */
+    void resize();
 
   public:
     /**
@@ -123,6 +132,41 @@ class Queue
     template<typename... Args>
     void emplace(Args&&... args);
 };
+
+
+template<typename T>
+void Queue<T>::resize()
+{
+  // 1. 기존 크기의 2배 공간을 할당한다
+  int newCapacity {capacity*2};
+  T* newQueueArray {nullptr};
+  alloc.allocate(newQueueArray, newCapacity);
+
+  // 2. front부터 back요소까지 모두 1열로 배치한다
+  int i=0;
+  int fIndex=frontIndex;
+  try
+  {    
+    for (; i<size; ++i)
+    {
+      // move_if_noexcept를 사용하여 이동 생성자가 호출되도록 구현
+      new (newQueueArray+fIndex) T(std::move_if_noexcept(queueArray[fIndex]));
+      fIndex = (fIndex+1) % capacity;
+    }
+  }
+  catch(const std::exception& e)
+  {
+    // try 코드에서 생성한 객체만 제거 후 Queue 메모리 공간 회수
+    for(--i; i>=0; --i)
+    {
+      std::destroy_at(&queueArray[fIndex]);
+      fIndex = (fIndex-1) % capacity;
+    }
+    alloc.deallocate(queueArray, capacity);
+    throw;
+  }
+
+}
 
 
 template<typename T> 
@@ -281,3 +325,5 @@ void Queue<T>::emplace(Args&&... args)
     backIndex = (backIndex+1) % capacity;
     size++;
 }
+
+
