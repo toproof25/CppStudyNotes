@@ -8,7 +8,7 @@
  * 
  * version 1.0.0 : unique_ptr을 이용하여 메모리 관리를 하는 Queue Class
  * version 2.0.0 : allocator와 Placement New방식을 이용하여 Raw 메모리 관리
- * vwesion 2.1.0 : resize함수를 구현하여 동적 크기 원형 큐를 구현
+ * vwesion 2.1.0 : resize 함수를 구현하여 동적 크기 원형 큐를 구현 / 크기 관련 변수 타입을 size_t 로 변경
  */
 
 #include <iostream>
@@ -26,6 +26,7 @@
  * front: 맨 앞 요소 반환
  * emplace: 인자를 받아 객체 생성 후 요소 삽입 (객체를 내부에서 생성)
  * getSize: 현재 요소 수를 반환
+ * getCapacity: 메모리 공간 크기를 반환
  * 
  */
 template<typename T>
@@ -34,8 +35,9 @@ class Queue
   private:
     int frontIndex = 0;
     int backIndex = 0;
-    int size = 0;
-    int capacity = 0;
+
+    size_t size = 0;
+    size_t capacity = 0;
 
     T* queueArray;
     std::allocator<T> alloc;
@@ -43,8 +45,10 @@ class Queue
   private:
     /**
      * @brief Queue 최대 사이즈를 늘립니다
+     * @throw 메모리 재할당 시 오류가 발생하는 경우 예외가 발생
      * @details Full 상태에서 push할 경우 호출되는 함수
      * - 기존 capacity에서 2배만큼 크기가 증가합니다
+     * - frontIndex는 0으로 backIndex는 size와 같게 초기화됩니다.
      */
     void resize();
 
@@ -83,10 +87,6 @@ class Queue
      */
     Queue& operator=(Queue<T> other);
 
-    bool isEmpty() noexcept;
-    bool isFull() noexcept; 
-    int getSize() noexcept;
-
     /**
      * @brief Queue에 L-value 복사 삽입
      * @param value L-value 형태의 T타입
@@ -99,16 +99,14 @@ class Queue
     /**
      * @brief Queue에 R-value 이전(move) 삽입
      * @param value R-value 형태의 T타입
-     * @throw 공간이 가득 찬 상태에서 삽입 시 out_of_range 예외 발생
-     * @warning 항상 공간(size) 확인 후 삽입 여부 결정
+     * @warning 최대 크기를 넘어서는 삽입 시 resize로 메모리 재할당 발생
      * @details R-value 형태의 T객체를 std::move를 이용하여 삽입(메모리 주소 이전)
      */
     void push(T&& value);
     
     /**
      * @brief Queue 요소 제거
-     * @throw 공간이 빈 상태에서 제거 시 out_of_range 예외 발생
-     * @warning 항상 빈 공간 확인 후 함수를 실행
+     * @warning 최대 크기를 넘어서는 삽입 시 resize로 메모리 재할당 발생
      * @details frontIndex번째 요소를 std::destroy_at()으로 소멸한 후 size를 1 감소합니다
      */
     void pop();
@@ -125,48 +123,18 @@ class Queue
     /**
      * @brief 내부에서 객체를 생성하고 삽입합니다
      * @param args 생성자에 필요한 인자들
-     * @throw 공간이 가득 찬 상태에서 삽입 시 out_of_range 예외 발생
-     * @warning 항상 공간(size) 확인 후 삽입 여부 결정
+     * @warning 최대 크기를 넘어서는 삽입 시 resize로 메모리 재할당 발생
      * @details 가변 인자 template로 인자를 받아 내부에서 객체를 생성합니다
      */
     template<typename... Args>
     void emplace(Args&&... args);
+
+    bool isEmpty() noexcept;
+    bool isFull() noexcept; 
+    
+    size_t getSize() noexcept;
+    size_t getCapacity() noexcept;
 };
-
-
-template<typename T>
-void Queue<T>::resize()
-{
-  // 1. 기존 크기의 2배 공간을 할당한다
-  int newCapacity {capacity*2};
-  T* newQueueArray {nullptr};
-  alloc.allocate(newQueueArray, newCapacity);
-
-  // 2. front부터 back요소까지 모두 1열로 배치한다
-  int i=0;
-  int fIndex=frontIndex;
-  try
-  {    
-    for (; i<size; ++i)
-    {
-      // move_if_noexcept를 사용하여 이동 생성자가 호출되도록 구현
-      new (newQueueArray+fIndex) T(std::move_if_noexcept(queueArray[fIndex]));
-      fIndex = (fIndex+1) % capacity;
-    }
-  }
-  catch(const std::exception& e)
-  {
-    // try 코드에서 생성한 객체만 제거 후 Queue 메모리 공간 회수
-    for(--i; i>=0; --i)
-    {
-      std::destroy_at(&queueArray[fIndex]);
-      fIndex = (fIndex-1) % capacity;
-    }
-    alloc.deallocate(queueArray, capacity);
-    throw;
-  }
-
-}
 
 
 template<typename T> 
@@ -183,7 +151,8 @@ Queue<T>::~Queue()
   for (int i=0; i<size; ++i)
   {
     std::destroy_at(&queueArray[frontIndex]);
-    frontIndex = (frontIndex+1) % capacity;
+    frontIndex++;
+    if (frontIndex >= capacity) frontIndex = 0;
   }
 
   // 2. queueArray값이 이동 생성자 등에 의해 초기화된 상태가 아니라면 Queue 전체 메모리 회수
@@ -227,16 +196,19 @@ Queue<T>::Queue(const Queue<T>& other) :
     for (; i<size; ++i)
     {
       new (queueArray+fIndex) T(other.queueArray[fIndex]);
-      fIndex = (fIndex+1) % capacity;
+      fIndex++;
+      if (fIndex >= capacity) fIndex = 0;
     }
   }
   catch(const std::exception& e)
   {
     // try 코드에서 생성한 객체만 제거 후 Queue 메모리 공간 회수
+    fIndex--;
     for(--i; i>=0; --i)
     {
       std::destroy_at(&queueArray[fIndex]);
-      fIndex = (fIndex-1) % capacity;
+      fIndex--;
+      if (fIndex <= 0) fIndex = capacity-1;
     }
     alloc.deallocate(queueArray, capacity);
     throw;
@@ -273,28 +245,37 @@ bool Queue<T>::isFull() noexcept
 }
 
 template<typename T>
-int Queue<T>::getSize() noexcept
+size_t Queue<T>::getSize() noexcept
 {
   return size;
 }
 
 template<typename T>
+size_t Queue<T>::getCapacity() noexcept
+{
+  return capacity;
+}
+
+
+template<typename T>
 void Queue<T>::push(const T& value)
 {
-  if (isFull()) throw std::out_of_range("Error Push copy, Index Out of Bounds: " + std::to_string(backIndex));
+  if (isFull()) resize();
 
   new (&queueArray[backIndex]) T(value);
-  backIndex = (backIndex+1) % capacity;
+  backIndex++;
+  if (backIndex >= capacity) backIndex = 0;
   size++;
 }
 
 template<typename T>
 void Queue<T>::push(T&& value)
 {
-  if (isFull()) throw std::out_of_range("Error Push move, Index Out of Bounds: " + std::to_string(backIndex));
+  if (isFull()) resize();
 
   new (&queueArray[backIndex]) T(std::move(value));
-  backIndex = (backIndex+1) % capacity;
+  backIndex++;
+  if (backIndex >= capacity) backIndex = 0;
   size++;
 }
 
@@ -304,7 +285,8 @@ void Queue<T>::pop()
   if (isEmpty()) throw std::out_of_range("Error pop, Index Out of Bounds: " + std::to_string(frontIndex));
 
   std::destroy_at(&queueArray[frontIndex]);
-  frontIndex = (frontIndex+1) % capacity;
+  frontIndex++;
+  if (frontIndex >= capacity) frontIndex = 0;
   size--;
 }
 
@@ -319,11 +301,59 @@ template<typename T>
 template<typename... Args>
 void Queue<T>::emplace(Args&&... args)
 {
-    if (isFull()) throw std::out_of_range("Error emplace_push, Index Out of Bounds: " + std::to_string(backIndex));
+    if (isFull()) resize();
     
     new (&queueArray[backIndex]) T(std::forward<Args>(args)...);
-    backIndex = (backIndex+1) % capacity;
+    backIndex++;
+    if (backIndex >= capacity) backIndex = 0;
     size++;
 }
 
+template<typename T>
+void Queue<T>::resize()
+{
+  // 1. 기존 크기의 2배 공간을 할당한다
+  size_t newCapacity {capacity*2};
+  T* newQueueArray {nullptr};
+  newQueueArray = alloc.allocate(newCapacity);
+
+  // 2. front부터 back요소까지 새로운 공간에 모두 연속적으로 배치한다
+  int i=0;
+  int fIndex = frontIndex;
+  try
+  {    
+    for (; i<size; ++i)
+    {
+      // move_if_noexcept를 사용하여 이동 생성자가 호출되도록 구현
+      new (newQueueArray+i) T(std::move_if_noexcept(queueArray[fIndex]));
+      fIndex++;
+      if (fIndex >= capacity) fIndex = 0;
+    }
+  }
+  catch(const std::exception& e)
+  {
+    // try 코드에서 생성한 객체만 제거 후 Queue 메모리 공간 회수
+    for(--i; i>=0; --i)
+    {
+      std::destroy_at(&newQueueArray[i]);
+    }
+    alloc.deallocate(newQueueArray, newCapacity);
+    throw;
+  }
+
+  // 3. 기존 메모리에서 유효한 객체만 소멸 후 메모리 회수
+  fIndex=frontIndex;
+  for (int i=0; i<size; ++i)
+  {
+    std::destroy_at(&queueArray[fIndex]);
+    fIndex++;
+    if (fIndex >= capacity) fIndex = 0;
+  }
+  alloc.deallocate(queueArray, capacity);
+
+  queueArray = newQueueArray;
+  capacity = newCapacity;
+  frontIndex = 0;
+  backIndex = size;
+}
 
