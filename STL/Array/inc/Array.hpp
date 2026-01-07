@@ -2,8 +2,8 @@
  * @file Array.hpp
  * @author toproof (kmnlmn123@gmail.com)
  * @date 2026-01-07
- * @version 1.0.0
- * @brief STL Array와 유사한 클래스 제작 - Raw Memory를 이용하여 고정 크기 배열 (Array) 구현하기
+ * @version 3.0.0
+ * @brief STL Array와 유사한 클래스 제작
  * @details 
  * 
  * ### version 1.0.0
@@ -12,135 +12,95 @@
  * - <array> 라이브러리의 기능을 분석한 후 각 기능들을 그대로 구현
  * 
  * ### version 2.0.0
- * - 실제 array의 경우 힙 기반 메모리가 아닌 스택 기반 메모리에 저장한다는 
+ * - 실제 array의 경우 객체 내부에 인라인으로 작성됨. 즉 new, allocator가 아닌 int num[5] 이런 식으로 작성되어 이렇게 수정하기로 결정
+ * - fill 함수는 1개로 고정 (value를 복사하여 모두 적용)
+ * - 유니폼 초기화를 지원하기 위한 생성자 초기화 추가
  * 
+ * ### version 3.0.0
+ * - 요소 반환 함수에서 `const T& index` 와 `int index`의 속도 차이 - const T&의 경우 주소를 가지며 8바이트, 그냥 int는 4바이트로 기본 타입의 경우 복사가 더 유리
+ * - 사실상 복사 생성자, 대입 생성자, 이동 생성자의 오버라이드가 의미가 없으므로 제거 -> Zero Overhead
+ * - v2.0.0에서 구현한 생성자 초기화를 제거 -> 컴파일러가 집합체 초기화로 만들어서 동작함
+ * - "특별한 이유가 없으면 생성자/소멸자/대입연산자를 아예 만들지 마라"는 원칙을 제일 잘 이해할 수 있었던 구현
+ * - at, front, back T타입 반환 함수를 복사가 아닌 참조를 반환하도록 수정 T -> T&
+ * - 반복자 호환?을 위해 begin, end 함수 구현
  * 
  */
 
-#include <new>
-#include <memory>
-#include <utility>
+#pragma ones
+#include <stdexcept>
 
 template <typename T, size_t capacity>
-class Array
+class Array 
 {
-  private:
-    T* array;
-    std::allocator<T> alloc;
-
   public:
-    Array();
-    Array(const Array<T, capacity>& other);
-    Array(Array<T, capacity>&& other);
-    Array<T, capacity> operator=(Array<T, capacity> other);
+    using iterator = T*;
 
-    T& operator[](const int& index);
-    const T& operator[](const int& index) const;
+    T array[capacity];
 
-    T at(const int& index) const;
+    /**
+     * @brief [] 연산자를 오버라이딩하여 요소를 반환합니다
+     * @param index 배열의 특정 번째
+     * @warning index의 범위를 계산하지 않아 범위에 주의
+     */
+    T& operator[](size_t index) noexcept;
+    const T& operator[](size_t index) const noexcept;
 
-    T front();
-    T back();
+    /**
+     * @brief 배열의 index번째 요소를 참조 반환합니다
+     * @param index 배열의 특정 번째를 의미
+     * @throw 배열 범위에 벗어나는 index인 경우 out_of_range를 throw
+     */
+    T& at(size_t index);
+    const T& at(size_t index) const;
 
-    void fill(T&& value);
-    void fill(const T& value);
+    T& front() noexcept;
+    T& back() noexcept;
 
-    size_t size();
+    /**
+     * @brief 배열의 모든 값을 value로 채웁니다
+     * @param value 배열을 초기화할 값
+     */
+    void fill(const T& value) noexcept;
 
-    Array<T, capacity>& data() const;
+    size_t size() noexcept;
+
+    // iterator 기능
+    iterator begin() { return array; }
+    iterator end() { return array+capacity; }
     
-    //bool empty();
 };
 
 template <typename T, size_t capacity>
-Array<T, capacity>::Array()
+T& Array<T, capacity>::operator[](size_t index) noexcept { return array[index]; }
+
+template <typename T, size_t capacity>
+const T& Array<T, capacity>::operator[](size_t index) const noexcept { return array[index]; }
+
+template <typename T, size_t capacity>
+T& Array<T, capacity>::at(size_t index)
 {
-  array = alloc.allocate(capacity);
+  if (index < 0 || index >= capacity) throw std::out_of_range("Error: out_of_range 배열 범위를 벗어났습니다...");
+  return array[index];
+}
+template <typename T, size_t capacity>
+const T& Array<T, capacity>::at(size_t index) const
+{
+  if (index < 0 || index >= capacity) throw std::out_of_range("Error: out_of_range 배열 범위를 벗어났습니다...");
+  return array[index];
 }
 
 template <typename T, size_t capacity>
-Array<T, capacity>::Array(const Array<T, capacity>& other)
-{
-  // 1. 고정 크기만큼 메모리 공간을 할당
-  array = alloc.allocate(capacity);
-
-  // 2. other의 요소를 모두 복사
-  int i=0;
-  try
-  {
-    for (; i<capacity; ++i)
-    {
-      new (array+i) T(*(other.array+i));
-    }
-  }
-  catch(const std::exception& e)
-  {
-    for(--i; i>=0; --i) std::destroy_at(array+i);
-    alloc.deallocate(array, capacity);
-    throw;
-  }
-  
-}
-
-template <typename T, size_t capacity>
-Array<T, capacity>::Array(Array<T, capacity>&& other) : array(other.array)
-{
-  other.array = nullptr;
-}
-
-template <typename T, size_t capacity>
-T& Array<T, capacity>::operator[](const int& index)
-{
-  return *(array+index);
-}
-
-template <typename T, size_t capacity>
-const T& Array<T, capacity>::operator[](const int& index) const
-{
-  return *(array+index);
-}
-
-template <typename T, size_t capacity>
-Array<T, capacity> Array<T, capacity>::operator=(Array<T, capacity> other)
-{
-  array = std::move(other);
-  return *this;
-}
-
-template <typename T, size_t capacity>
-T Array<T, capacity>::at(const int& index) const
-{
-  if (index < 0 || index >= capacity) throw std::out_of_range("배열 범위를 벗어났습니다...");
-  return *(array+index);
-}
-
-template <typename T, size_t capacity>
-T Array<T, capacity>::front() { return array[0]; }
-
-template <typename T, size_t capacity>
-T Array<T, capacity>::back() { return array[capacity-1]; }
-
-template <typename T, size_t capacity>
-void Array<T, capacity>::fill(T&& value)
+void Array<T, capacity>::fill(const T& value) noexcept
 {
   for (int i=0; i<capacity; ++i)
-  {
-    new (array+i) T(std::move(value));
-  }
+    array[i] = value;
 }
 
 template <typename T, size_t capacity>
-void Array<T, capacity>::fill(const T& value)
-{
-  for (int i=0; i<capacity; ++i)
-  {
-    new (array+i) T(value);
-  }
-}
+T& Array<T, capacity>::front() noexcept { return array[0]; }
 
 template <typename T, size_t capacity>
-size_t Array<T, capacity>::size()
-{
-  size_t size = capacity;
-  return size;
-}
+T& Array<T, capacity>::back() noexcept { return array[capacity-1]; }
+
+template <typename T, size_t capacity>
+size_t Array<T, capacity>::size() noexcept { return capacity; }
