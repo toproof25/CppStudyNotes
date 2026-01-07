@@ -1,5 +1,6 @@
 #include <iostream>
 #include <array>
+#include <algorithm>
 #include "../inc/Array.hpp"
 
 int main()
@@ -58,44 +59,58 @@ int main()
   printf("---------------------------------------------------------\n\n");
   
   // std::array<타입, 크기>로 정의
-  Array<int, 10> cu_ar;
+  Array<int, 10> okArray {1, 2, 3, 4, 5};
 
   // `[]`연산자로 내부 요소 접근 가능
   for (int i=0; i<10; ++i)
-    std::cout << i << ". [ ] 인텍스 값 : " << cu_ar[i] << '\n';
+    std::cout << i << ". [ ] 인텍스 값 : " << okArray[i] << '\n';
   printf("\n");
 
   // at(index) 함수로 내부 요소 접근 가능
+  try
+  {
+    for (int i=0; i<11; ++i)
+      std::cout << i << ". at() 인텍스 값 : " << okArray.at(i) << '\n';
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+  }
+  printf("\n");
+
+  // fill 함수로 내부 요소 모두 채우기
+  okArray.fill(12345);
   for (int i=0; i<10; ++i)
-    std::cout << i << " at() 인텍스 값 : " << cu_ar.at(i) << '\n';
+    std::cout << "fill로 모두 채운 값: " << okArray[i] << '\n';
   printf("\n");
 
   // 맨 앞과 맨 뒤 요소 출력
-  cu_ar[0] = 111; cu_ar[9] = 999;
-  std::cout << "front() 맨 앞 요소의 값: " << cu_ar.front() << '\n';
-  std::cout << "back()  맨 뒤 요소의 값: " << cu_ar.back() << '\n';
+  okArray[0] = 111; okArray[9] = 999;
+  std::cout << "front() 맨 앞 요소의 값: " << okArray.front() << '\n';
+  std::cout << "back()  맨 뒤 요소의 값: " << okArray.back() << '\n';
   printf("\n");
   
   // 크기 출력
-  std::cout << "size() 배열의 크기: " << cu_ar.size() << '\n';
+  std::cout << "size() 배열의 크기: " << okArray.size() << '\n';
   printf("\n");
 
-  // // iterator 반복자로 순회
-  // Array<int, 10>::iterator it;
-  // for (it = cu_ar.begin(); it!=cu_ar.end(); ++it)
-  //   std::cout << "iterator로 순회: " << *it << '\n';
-  // printf("\n");
+  
+  // iterator 반복자로 순회
+  //Array<int, 10>::iterator it;
+  for (auto it = okArray.begin(); it!=okArray.end(); ++it)
+    std::cout << "iterator로 순회: " << *it << '\n';
+  printf("\n");
 
-  // // reverse iterator 반복자로 역순회
-  // Array<int, 10>::reverse_iterator rit;
-  // for (rit = cu_ar.rbegin(); rit != cu_ar.rend(); ++rit)
-  //   std::cout << "reverse iterator로 순회: " << *rit << '\n';
-  // printf("\n");
+  std::sort(okArray.begin(), okArray.end());
 
-  // fill 함수로 내부 요소 모두 채우기
-  cu_ar.fill(12345);
-  for (int i=0; i<10; ++i)
-    std::cout << "fill로 모두 채운 값: " << cu_ar[i] << '\n';
+  for (auto it = okArray.begin(); it!=okArray.end(); ++it)
+    std::cout << "srot 함수로 오름차순 정렬 후 순회: " << *it << '\n';
+  printf("\n");
+
+  std::reverse(okArray.begin(), okArray.end());
+
+  for (auto it = okArray.begin(); it!=okArray.end(); ++it)
+    std::cout << "reverse  함수로 내림차순 정렬 후 순회: " << *it << '\n';
   printf("\n");
 
   return 0;
