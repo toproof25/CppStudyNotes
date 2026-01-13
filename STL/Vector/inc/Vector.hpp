@@ -30,8 +30,8 @@ class Vector
     std::allocator<T> alloc;
 
   private:
-    bool isFull();
-    bool isEmpty();
+    bool isFull() { return (_size == _capacity); }
+    bool isEmpty() { return (_size <= 0); }
     void resize();
 
   public:
@@ -39,7 +39,7 @@ class Vector
      * @brief 기본 생성자
      * @note 기본 크기 변수들 초기화
      */
-    Vector() noexcept : _size(0), _capacity(0), vectorArray(nullptr) {};
+    Vector() noexcept : _size(0), _capacity(0), vectorArray(nullptr) {}
 
     /**
      * @brief 소멸자
@@ -78,8 +78,8 @@ class Vector
      * @warning 범위에 대한 예외처리를 하지 않으므로 범위에 주의
      * @note index위치의 참조 값을 반환하여 수정, 읽기 전용 오버로딩
      */
-    T& operator[](size_t index) noexcept;
-    const T& operator[](size_t index) const noexcept; 
+    T& operator[](size_t index) noexcept { return vectorArray[index]; }
+    const T& operator[](size_t index) const noexcept { return vectorArray[index]; }
 
     /**
      * @brief index 위치 요소를 참조 반환
@@ -97,8 +97,8 @@ class Vector
      * @throw out_of_range (빈 공간에서 호출 시 예외 발생)
      * @note 수정과 읽기 변수로 오버로딩
      */
-    T& front();
-    const T& front() const;
+    T& front() { return vectorArray[0]; }
+    const T& front() const { return vectorArray[0]; }
 
     /**
      * @brief 마지막 요소를 반환하는 함수입니다
@@ -106,8 +106,8 @@ class Vector
      * @throw out_of_range (빈 공간에서 호출 시 예외 발생)
      * @note 수정과 읽기 변수로 오버로딩
      */
-    T& back();
-    const T& back() const;
+    T& back() { return vectorArray[_size-1]; }
+    const T& back() const { return vectorArray[_size-1]; }
 
     /**
      * @brief 객체의 크기를 미리 할당하는 함수
@@ -149,15 +149,11 @@ class Vector
      */
     void clear();
 
-    const size_t& size() const;
-    const size_t& capacity() const;
-
-    // template <typename ...Args> 
-    // void emplace(T* vp, Args&&... args);
-
-    void insert(T* vp, const T& value);
-    // void insert(T* vp, T&& value);
-    // void erase(T* vp);
+    template <typename ...Args> 
+    void emplace(iterator _ptr, Args&&... args);
+    void insert(iterator _ptr, const T& value);
+    void insert(iterator _ptr, T&& value);
+    void erase(iterator _ptr);
 
     /**
      * @brief 반복자
@@ -169,6 +165,9 @@ class Vector
     const_iterator end() const { return vectorArray + _size; }
     const_iterator cbegin() const { return vectorArray; }
     const_iterator cend() const { return vectorArray + _size; }
+
+    size_t size() { return _size; }
+    size_t capacity() { return _capacity; }
 };
 
 template <typename T>
@@ -223,11 +222,6 @@ Vector<T>& Vector<T>::operator=(Vector<T> other)
   return *this;
 }
 
-template <typename T>
-T& Vector<T>::operator[](size_t index) noexcept { return vectorArray[index]; }
-
-template <typename T>
-const T& Vector<T>::operator[](size_t index) const noexcept { return vectorArray[index]; }
 
 template <typename T>
 T& Vector<T>::at(size_t index)
@@ -243,23 +237,31 @@ const T& Vector<T>::at(size_t index) const
   return vectorArray[index];
 }
 
-template <typename T>
-T& Vector<T>::front() { return vectorArray[0]; }
 
 template <typename T>
-const T& Vector<T>::front() const { return vectorArray[0]; }
-
-template <typename T>
-T& Vector<T>::back() { return vectorArray[_size-1]; }
-
-template <typename T>
-const T& Vector<T>::back() const { return vectorArray[_size-1]; }
-
-template <typename T>
-void Vector<T>::reserve(size_t _capacity)
+void Vector<T>::reserve(size_t newCapacity)
 {
-  this->_capacity = _capacity;
-  vectorArray = alloc.allocate(this->_capacity);
+  if (_capacity >= newCapacity) return;
+
+  T* newArray = alloc.allocate(newCapacity);
+
+  try
+  {
+    std::uninitialized_move(begin(), end(), newArray);
+  }
+  catch(const std::exception& e)
+  {
+    alloc.deallocate(newArray, newCapacity);
+    throw;
+  }
+  
+  std::destroy(begin(), end());
+  if (vectorArray != nullptr)
+    alloc.deallocate(vectorArray, _capacity);
+
+  _capacity = newCapacity;
+  vectorArray = newArray;
+
 }
 
 template <typename T>
@@ -296,12 +298,6 @@ void Vector<T>::emplace_back(Args&&... args)
 }
 
 template <typename T>
-const size_t& Vector<T>::size() const { return _size; }
-
-template <typename T>
-const size_t& Vector<T>::capacity() const { return _capacity; }
-
-template <typename T>
 void Vector<T>::shrink_to_fit()
 {
   size_t newCapacity = _size;
@@ -329,30 +325,98 @@ void Vector<T>::shrink_to_fit()
 template <typename T>
 void Vector<T>::clear()
 {
-  if(isEmpty()) throw std::out_of_range("Error clear(): 빈 공간에서는 호출할 수 업습니다");
   for (size_t i=0; i<_size; ++i)
     std::destroy_at(vectorArray+i);
   _size = 0;
 }
 
 template <typename T>
-void Vector<T>::insert(iterator _ptr, const T& value)
+template <typename ...Args> 
+void Vector<T>::emplace(iterator _ptr, Args&&... args)
 {
-  if(isFull()) resize();
-
-  for (iterator it = vectorArray+_size; it != _ptr; --it)
+  if(isFull()) 
   {
-    new (&it) T(std::move_if_noexcept(*(it-1)));
+    // resize 발생 시 반복자 무효화가 발생하기에 _ptr 위치를 임시 저장 후 resize가 된 후에 반영
+    size_t temp = _ptr - begin();
+    resize();
+    _ptr = begin() + temp;
   }
-  
-  new (&_ptr) T(value);
+
+  // 정의되지 않은 공간 - 맨 뒷 공간에 객체 생성
+  iterator it = end();
+  new (it) T(std::move(*(it-1)));
+  --it;
+
+  // 정의된 공간 - _ptr ~ it-1 까지 뒤로 밀기
+  std::move_backward(_ptr, it, end());
+
+  // 객체 생성 후 공간에 할당
+  *_ptr = T(std::forward<Args>(args)...);
+  _size++;
 }
 
 template <typename T>
-bool Vector<T>::isFull() { return (_size == _capacity); }
+void Vector<T>::insert(iterator _ptr, const T& value)
+{
+  if(isFull()) 
+  {
+    // resize 발생 시 반복자 무효화가 발생하기에 _ptr 위치를 임시 저장 후 resize가 된 후에 반영
+    size_t temp = _ptr - begin();
+    resize();
+    _ptr = begin() + temp;
+  }
+
+  // 정의되지 않은 공간 - 맨 뒷 공간에 객체 생성
+  iterator it = end();
+  new (it) T(std::move(*(it-1)));
+  --it;
+
+  // 정의된 공간 - _ptr ~ it-1 까지 뒤로 밀기
+  std::move_backward(_ptr, it, end());
+
+  // 삽입할 공간에 value를 복사
+  *_ptr = value;
+  _size++;
+}
 
 template <typename T>
-bool Vector<T>::isEmpty() { return (_size <= 0); }
+void Vector<T>::insert(iterator _ptr, T&& value)
+{
+  // resize 발생 시 반복자 무효화가 발생하여 _ptr 위치에 값이 제대로 설정되지 않음
+  if(isFull()) 
+  {
+    size_t temp = _ptr - begin();
+    resize();
+    _ptr = begin() + temp;
+  }
+
+  // 정의되지 않은 공간 - 맨 뒷 공간에 객체 생성
+  iterator it = end();
+  new (it) T(std::move(*(it-1)));
+  --it;
+
+  // 정의된 공간 - _ptr ~ it-1 까지 뒤로 밀기
+  std::move_backward(_ptr, it, end());
+
+  // 삽입할 공간에 value를 이동
+  *_ptr = std::move(value);
+  _size++;
+}
+
+template <typename T>
+void Vector<T>::erase(iterator _ptr)
+{
+  if(isEmpty()) throw std::out_of_range("Error erase: 소멸할 객체가 없습니다");
+
+  iterator it = end()-1;
+  for (; _ptr != it; ++_ptr)
+  {
+    *_ptr = std::move(*(_ptr+1));
+  }
+
+  std::destroy_at(end()-1);
+  _size--;
+}
 
 template <typename T>
 void Vector<T>::resize()
@@ -365,22 +429,20 @@ void Vector<T>::resize()
   // 2. 새로운 크기만큼 메모리 공간을 할당
   T* newArray = alloc.allocate(newCapacity);
 
-  // 3. 새로운 메모리 공간에 기존 값을 복사/이동
-  int i=0;
+  // 3. 새로운 메모리 공간에 기존 값을 이동
   try
   {
-    for (; i<_size; ++i)
-      new (newArray+i) T(std::move_if_noexcept(vectorArray[i]));
+    std::uninitialized_move(begin(), end(), newArray);
   }
   catch(const std::exception& e)
   {
-    for (; i>=0; --i) std::destroy_at(newArray+i);
     alloc.deallocate(newArray, newCapacity);
     throw;
   }
   
   // 4. 기존 메모리 공간을 회수
-  alloc.deallocate(vectorArray, _capacity);
+  std::destroy(begin(), end());
+  if (vectorArray != nullptr) alloc.deallocate(vectorArray, _capacity);
   _capacity = newCapacity;
   vectorArray = newArray;
 }
