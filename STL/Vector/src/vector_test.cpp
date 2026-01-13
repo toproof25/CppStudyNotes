@@ -31,6 +31,8 @@ int main()
 { 
   // 정의
   std::vector<int> v;
+  std::cout << "vector 객체 생성 size, capacity : " << v.size() << ", " << v.capacity() << '\n';
+
 
   // [] 연산자, at를 이용하여 요소 접근
 
@@ -136,6 +138,19 @@ int main()
   printf("\n\n");
 
 
+  v.clear();
+  v.shrink_to_fit();
+  v.reserve(10);
+  for (size_t i = 0; i < 5; i++)
+  {
+    v.push_back(i * 10);
+  }
+
+  for (auto it = v.begin(); it != v.end(); ++it)
+  {
+    std::cout << "*it: " << *it << '\n';
+  }
+  
   
 
   return 0;
