@@ -118,6 +118,43 @@ void Test07(Vector<int>& v)
   printf("\n\n");
 }
 
+void Test08(Vector<int>& v)
+{
+  std::cout << "*************************" << " < 8. insert() 함수 테스트 > " << "*************************" << '\n';
+  for (int i=0; i<10; ++i) v.push_back(i);
+  std::cout << "insert() 전 v 객체 상태와 크기 size, capacity: " << v.size() << ", " << v.capacity() << '\n';
+  for (int i=0; i<v.size(); ++i) std::cout << i+1 << ". v["<< i << "]: " << v[i] << '\n';
+  printf("\n");
+
+  v.insert(v.begin()+3, 999);
+  v.insert(v.begin()+6, 9999);
+
+  std::cout << "insert() 후 v 객체 상태와 크기 size, capacity: " << v.size() << ", " << v.capacity() << '\n';
+  for (int i=0; i<v.size(); ++i) std::cout << i+1 << ". v["<< i << "]: " << v[i] << '\n';
+
+  printf("\n\n");
+}
+
+
+void Test09(Vector<int>& v)
+{
+  std::cout << "*************************" << " < 9. erase() 함수 테스트 > " << "*************************" << '\n';
+
+  std::cout << "erase() 전 v 객체 상태와 크기 size, capacity: " << v.size() << ", " << v.capacity() << '\n';
+  for (int i=0; i<v.size(); ++i) std::cout << i+1 << ". v["<< i << "]: " << v[i] << '\n';
+  printf("\n");
+
+  v.erase(v.begin()+3);
+  v.erase(v.begin()+5);
+  v.erase(v.begin()+7);
+
+  std::cout << "erase() 후 v 객체 상태와 크기 size, capacity: " << v.size() << ", " << v.capacity() << '\n';
+  for (int i=0; i<v.size(); ++i) std::cout << i+1 << ". v["<< i << "]: " << v[i] << '\n';
+
+  printf("\n\n");
+}
+
+
 
 int main()
 { 
@@ -132,6 +169,8 @@ int main()
   Test05(v);
   Test06(v);
   Test07(v);
+  Test08(v);
+  Test09(v);
 
 
 
