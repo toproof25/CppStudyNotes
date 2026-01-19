@@ -51,6 +51,7 @@ void Test02(std::list<int>& l)
 }
 void Test03(std::list<int>& l)
 {
+  
   std::cout << "*************************" << " < 3. insert() 객체 데이터 중간 삽입 테스트 > " << "*************************" << '\n';
   
   l.insert(++l.begin(), 123456);

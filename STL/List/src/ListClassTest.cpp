@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "../inc/List.hpp"
 
 struct test
@@ -218,16 +219,15 @@ void Test11_erase()
 
   l.printList();
 
-  l.erase(++it); 
+  it = l.erase(++it); 
   l.printList();
 
+  //it = l.begin();
   ++it;
   it++;
   
   l.erase(it); 
   l.printList();
-
-
 
   printf("\n\n");
 }
@@ -240,17 +240,61 @@ void Test12_remove()
   l.insert(++it, 0);
   l.insert(++it, 0);
   l.insert(++it, 0);
-
   l.printList();
 
   l.remove(0);
-  
   l.printList();
 
   printf("\n\n");
 }
 
+void Test13_constructor()
+{
+  std::cout  << "******************" << " < constructor 테스트 > " << "******************" << '\n';
 
+  std::cout << "****** copy constructor\n"; 
+  List<int> copy_l(l);
+
+  List<int>::iterator it = copy_l.begin();
+  ++it;
+  ++it;
+  ++it;
+  copy_l.insert(it, 0);
+
+  copy_l.pop_front();
+  copy_l.pop_front();
+
+  l.printList();
+  copy_l.printList();
+
+
+  std::cout << "****** move constructor\n"; 
+  List<int> move_l(std::move(copy_l));
+  copy_l.printList();
+  move_l.printList();
+
+  
+  try
+  {
+    std::cout << "****** assignment constructor\n";
+    List<int> assignment_l(l);
+    assignment_l.printList();
+
+    std::cout << "---" << '\n';
+    assignment_l = move_l;
+    assignment_l.push_front(11111);
+    assignment_l.printList();
+    move_l.printList();
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+  }
+  
+
+
+  printf("\n\n");
+}
 
 
 int main()
@@ -272,10 +316,9 @@ int main()
   Test11_erase();
 
   Test12_remove();
-  
-  
-  
-  
 
+  Test13_constructor();
+ 
+  std::cout << "테스트 종료" <<'\n';
   return 0;
 }
