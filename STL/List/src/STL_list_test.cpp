@@ -61,7 +61,6 @@ void Test03(std::list<int>& l)
   {
     std::cout << ++i << ". l : " << *it << (i==2 ? " <-- 삽입한 부분" : "") << '\n';
   }
-
   printf("\n\n");
 }
 void Test04(std::list<int>& l)
