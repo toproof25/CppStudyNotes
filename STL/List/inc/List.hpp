@@ -23,7 +23,12 @@ private:
     T value;
     Node* next_node = nullptr;
     Node* pre_node = nullptr;
-    Node(T value) : value(value) {}
+
+    Node(const T& v) : value(v) {}
+    Node(T&& v) : value(std::move(v)) {}
+
+    template <typename... Args>
+    Node(Args&& ...args) : value(std::forward<Args>(args)...) {}
   };
 
   size_t _capacity;
@@ -34,6 +39,12 @@ public:
   template <typename _ptr, typename _ref>
   struct ListIterator
   {
+    using difference_type = std::ptrdiff_t;           // 반복자 간 거리 타입
+    using value_type = typename std::remove_reference<_ref>::type;  // 요소의 타입
+    using pointer = value_type*;                      // 포인터 타입
+    using reference = _ref;                           // 참조 타입
+    using iterator_category = std::bidirectional_iterator_tag;  // 반복자 카테고리
+    
     _ptr it;
 
     ListIterator(_ptr _it) : it(_it) {};
@@ -54,6 +65,12 @@ public:
   template <typename _ptr, typename _ref>
   struct ReverseListIterator
   {
+    using difference_type = std::ptrdiff_t;           // 반복자 간 거리 타입
+    using value_type = typename std::remove_reference<_ref>::type;  // 요소의 타입
+    using pointer = value_type*;                      // 포인터 타입
+    using reference = _ref;                           // 참조 타입
+    using iterator_category = std::bidirectional_iterator_tag;  // 반복자 카테고리
+
     _ptr it;
     ReverseListIterator(_ptr _it) : it(_it) {};
 
@@ -96,7 +113,7 @@ public:
 
   List(const List<T>& other);
   List(List<T>&& other) noexcept;
-  List<T>* operator=(List<T> other);
+  List<T>& operator=(List<T> other);
 
   T& front() { return frontNode->value; }
   T& back() { return backNode->value; }
@@ -122,13 +139,13 @@ public:
   void pop_front();
   void pop_back();
 
-  void insert(iterator& _iterator, const T& value);
-  void insert(iterator& _iterator, T&& value);
+  void insert(iterator _iterator, const T& value);
+  void insert(iterator _iterator, T&& value);
 
   template <typename... Args>
-  void emplace(iterator& _iterator, Args&& ...args);
+  void emplace(iterator _iterator, Args&& ...args);
 
-  void erase(iterator& _iterator);
+  iterator erase(iterator _iterator);
 
   void remove(const T& value);
 
@@ -148,10 +165,11 @@ public:
   }
 };
 
+
 template <typename T>
 List<T>::~List()
 {
-  if (frontNode == nullptr)
+  if (frontNode == nullptr || backNode == nullptr)
   {
     return;
   }
@@ -172,20 +190,48 @@ List<T>::~List()
 
 
 template <typename T>
-List<T>::List(const List<T>& other)
+List<T>::List(const List<T>& other) : _capacity(other._capacity)
 {
   std::allocator<Node> alloc;
 
+  Node* start = other.frontNode;
+  Node* end = other.backNode;
+
   try
   {
-    /* code */
+    frontNode = alloc.allocate(1);
+    new (frontNode) Node(start->value);
+
+    Node* currentNode;
+    Node* prevNode = frontNode;
+
+    start = start->next_node;
+    while (start != end)
+    {
+
+      currentNode = alloc.allocate(1);
+      new (currentNode) Node(start->value);
+
+      currentNode->pre_node = prevNode;
+      prevNode->next_node = currentNode;
+
+      prevNode = currentNode;
+
+      start = start->next_node;
+    }
+
+    backNode = alloc.allocate(1);
+    new (backNode) Node(end->value);
+    currentNode->next_node = backNode;
+    backNode->pre_node = currentNode;
+    backNode->next_node = nullptr;
+
   }
   catch(const std::exception& e)
   {
     std::cerr << e.what() << '\n';
+    throw;
   }
-  
-  
 }
 
 template <typename T>
@@ -197,11 +243,13 @@ List<T>::List(List<T>&& other) noexcept : frontNode(other.frontNode), backNode(o
 }
 
 template <typename T>
-List<T>* List<T>::operator=(List<T> other)
+List<T>& List<T>::operator=(List<T> other)
 {
   std::swap(frontNode, other.frontNode);
   std::swap(backNode, other.backNode);
   std::swap(_capacity, other._capacity);
+
+  other.frontNode = nullptr;
   return *this;
 }
 
@@ -311,13 +359,13 @@ void List<T>::emplace_front(Args&& ...args)
   if (frontNode == nullptr)
   {
     frontNode = alloc.allocate(1);
-    new (frontNode) Node({std::forward<Args>(args)...});
+    new (frontNode) Node(std::forward<Args>(args)...);
     backNode = frontNode;
   }
   else
   {
     Node* node = alloc.allocate(1);
-    new (node) Node({std::forward<Args>(args)...});
+    new (node) Node(std::forward<Args>(args)...);
 
     node->next_node = frontNode;
     frontNode->pre_node = node;
@@ -336,13 +384,13 @@ void List<T>::emplace_back(Args&& ...args)
   if (backNode == nullptr)
   {
     frontNode = alloc.allocate(1);
-    new (frontNode) Node({std::forward<Args>(args)...});
+    new (frontNode) Node(std::forward<Args>(args)...);
     backNode = frontNode;
   }
   else
   {
     Node* node = alloc.allocate(1);
-    new (node) Node({std::forward<Args>(args)...});
+    new (node) Node(std::forward<Args>(args)...);
     node->pre_node = backNode;
     backNode->next_node = node;
     backNode = node;
@@ -405,7 +453,7 @@ void List<T>::pop_back()
 }
 
 template <typename T>
-void List<T>::insert(iterator& _iterator, const T& value)
+void List<T>::insert(iterator _iterator, const T& value)
 {
   // 첫번째 위치라면 push_front
   if (frontNode == _iterator.it)
@@ -438,7 +486,7 @@ void List<T>::insert(iterator& _iterator, const T& value)
 }
 
 template <typename T>
-void List<T>::insert(iterator& _iterator, T&& value)
+void List<T>::insert(iterator _iterator, T&& value)
 {
   // 첫번째 위치라면 push_front
   if (frontNode == _iterator.it)
@@ -473,7 +521,7 @@ void List<T>::insert(iterator& _iterator, T&& value)
 
 template <typename T>
 template <typename... Args>
-void List<T>::emplace(iterator& _iterator, Args&& ...args)
+void List<T>::emplace(iterator _iterator, Args&& ...args)
 {
   // 첫번째 위치라면 push_front
   if (frontNode == _iterator.it)
@@ -494,7 +542,7 @@ void List<T>::emplace(iterator& _iterator, Args&& ...args)
 
   std::allocator<Node> alloc;
   Node* node = alloc.allocate(1);
-  new (node) Node({std::forward<Args>(args)...});
+  new (node) Node(std::forward<Args>(args)...);
 
   preNode->next_node = node;
 
@@ -506,23 +554,25 @@ void List<T>::emplace(iterator& _iterator, Args&& ...args)
 }
 
 
-template <typename T>
-void List<T>::erase(iterator& _iterator)
+template <typename T> 
+typename List<T>::iterator List<T>::erase(iterator _iterator)
 {
-  if (frontNode == _iterator.it)
+  iterator deleteIter = _iterator;
+  iterator nextIterator = ++_iterator;
+
+  if (frontNode == deleteIter.it)
   {
     pop_front();
-    return;
+    return nextIterator;
   }
 
-  if (backNode == _iterator.it)
+  if (backNode == deleteIter.it)
   {
     pop_back();
-    return;
+    return nextIterator;
   }
 
-  Node* deleteNode = _iterator.it;
-
+  Node* deleteNode = deleteIter.it;
   Node* preNode = deleteNode->pre_node;
   Node* nextNode = deleteNode->next_node;
 
@@ -534,23 +584,28 @@ void List<T>::erase(iterator& _iterator)
   alloc.deallocate(deleteNode, 1);
 
   _capacity--;
+
+  return nextIterator;
 }
 
 template <typename T>
 void List<T>::remove(const T& value)
 {
-  Node* currentNode = frontNode;
-
   std::allocator<Node> alloc;
 
+  Node* currentNode = frontNode;
   Node* deleteNode;
-  Node* preNode;
+  Node* pNode;
+  Node* nNode;
+
   Node* nextNode;
 
   while (currentNode != backNode->next_node)
   {
+    nextNode = currentNode->next_node;
     if (currentNode->value == value)
     {
+      
       if (currentNode == frontNode) 
         pop_front();
       else if (currentNode == backNode) 
@@ -558,18 +613,17 @@ void List<T>::remove(const T& value)
       else
       {
         deleteNode = currentNode;
-        preNode = deleteNode->pre_node;
-        nextNode = deleteNode->next_node;
+        pNode = deleteNode->pre_node;
+        nNode = deleteNode->next_node;
 
-        preNode->next_node = nextNode;
-        nextNode->pre_node = preNode;
+        pNode->next_node = nNode;
+        nNode->pre_node = pNode;
 
         std::destroy_at(deleteNode);
         alloc.deallocate(deleteNode, 1);
         _capacity--;
       }
     }
-
-    currentNode = currentNode->next_node;
+    currentNode = nextNode;
   }
 }
