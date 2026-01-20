@@ -169,29 +169,31 @@ public:
 template <typename T>
 List<T>::~List()
 {
-  if (frontNode == nullptr || backNode == nullptr)
-  {
-    return;
-  }
+  if (frontNode == nullptr || backNode == nullptr) return;
 
   std::allocator<Node> alloc;
 
   Node* deleteNode = frontNode;
-  while(deleteNode != backNode)
+  while(deleteNode != nullptr)
   {
-    deleteNode = frontNode->next_node;
-    std::destroy_at(frontNode);
-    alloc.deallocate(frontNode, 1);
+    frontNode = frontNode->next_node;
+
+    std::destroy_at(deleteNode);
+    alloc.deallocate(deleteNode, 1);
+    
+    deleteNode = frontNode;
   }
 
-  std::destroy_at(backNode);
-  alloc.deallocate(backNode, 1);
+  // std::destroy_at(backNode);
+  // alloc.deallocate(backNode, 1);
 }
 
 
 template <typename T>
 List<T>::List(const List<T>& other) : _capacity(other._capacity)
 {
+  //if (_capacity == 0) return List<T>();
+
   std::allocator<Node> alloc;
 
   Node* start = other.frontNode;
@@ -199,14 +201,16 @@ List<T>::List(const List<T>& other) : _capacity(other._capacity)
 
   try
   {
+    // front를 먼저 지정하지 않으면 while에서 prevNode==nullptr로 조건을 검사해야함
+    // 분기 예측으로 성능 저하를 예상?
     frontNode = alloc.allocate(1);
     new (frontNode) Node(start->value);
 
-    Node* currentNode;
+    Node* currentNode = frontNode;
     Node* prevNode = frontNode;
 
     start = start->next_node;
-    while (start != end)
+    while (start != nullptr)
     {
 
       currentNode = alloc.allocate(1);
@@ -220,11 +224,11 @@ List<T>::List(const List<T>& other) : _capacity(other._capacity)
       start = start->next_node;
     }
 
-    backNode = alloc.allocate(1);
-    new (backNode) Node(end->value);
-    currentNode->next_node = backNode;
-    backNode->pre_node = currentNode;
-    backNode->next_node = nullptr;
+    // backNode = alloc.allocate(1);
+    // new (backNode) Node(end->value);
+    // currentNode->next_node = backNode;
+    // backNode->pre_node = currentNode;
+    // backNode->next_node = nullptr;
 
   }
   catch(const std::exception& e)

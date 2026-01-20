@@ -273,25 +273,15 @@ void Test13_constructor()
   copy_l.printList();
   move_l.printList();
 
-  
-  try
-  {
-    std::cout << "****** assignment constructor\n";
-    List<int> assignment_l(l);
-    assignment_l.printList();
+  std::cout << "****** assignment constructor\n";
+  List<int> assignment_l(l);
+  assignment_l.printList();
 
-    std::cout << "---" << '\n';
-    assignment_l = move_l;
-    assignment_l.push_front(11111);
-    assignment_l.printList();
-    move_l.printList();
-  }
-  catch(const std::exception& e)
-  {
-    std::cerr << e.what() << '\n';
-  }
-  
-
+  std::cout << "---" << '\n';
+  assignment_l = move_l;
+  assignment_l.push_front(11111);
+  assignment_l.printList();
+  move_l.printList();
 
   printf("\n\n");
 }
