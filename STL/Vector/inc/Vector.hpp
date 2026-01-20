@@ -26,9 +26,6 @@
 template <typename T>
 class Vector
 {
-  using iterator = T*;
-  using const_iterator = const T*;
-
   private:
     size_t _size = 0;
     size_t _capacity = 0;      
@@ -41,6 +38,8 @@ class Vector
     void resize();
 
   public:
+    using iterator = T*;
+    using const_iterator = const T*;
 
     /** @brief 기본 변수값을 초기화하는 기본 생성자 */
     Vector() noexcept : _size(0), _capacity(0), vectorArray(nullptr) {}
@@ -181,7 +180,7 @@ _size(other._size)
   try
   {
     // 이동이 가능하면 이동, 아니면 복사
-    if constexpr (std::is_nothrow_move_constructible<T>::value)
+    if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>)
       std::uninitialized_move(other.begin(), other.end(), vectorArray);
     else
       std::uninitialized_copy(other.begin(), other.end(), vectorArray);
@@ -239,7 +238,7 @@ void Vector<T>::reserve(size_t newCapacity)
   try
   {
     // 이동이 가능하면 이동, 아니면 복사
-    if constexpr (std::is_nothrow_move_constructible<T>::value)
+    if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>)
       std::uninitialized_move(begin(), end(), newArray);
     else
       std::uninitialized_copy(begin(), end(), newArray);
@@ -301,7 +300,10 @@ void Vector<T>::shrink_to_fit()
   // 새로운 메모리 공간에 기존 값을 복사/이동
   try
   {
-    std::uninitialized_move(begin(), begin()+_size, newArray);
+    if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>)
+      std::uninitialized_move(begin(), end(), newArray);
+    else
+      std::uninitialized_copy(begin(), end(), newArray);
   }
   catch(const std::exception& e)
   {
@@ -453,7 +455,7 @@ void Vector<T>::resize()
   try
   {
     // 이동이 가능하면 이동, 아니면 복사
-    if constexpr (std::is_nothrow_move_constructible<T>::value)
+    if constexpr (std::is_nothrow_move_constructible_v<T> || !std::is_copy_constructible_v<T>)
       std::uninitialized_move(begin(), end(), newArray);
     else
       std::uninitialized_copy(begin(), end(), newArray);
