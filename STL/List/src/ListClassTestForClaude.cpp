@@ -861,8 +861,25 @@ void Test15_EraseOperation() {
 
 void Test16_RemoveOperation() {
     PrintSection("테스트 16: Remove 연산 (값으로 삭제)");
-    
-    PrintSubSection("16.1 단일 값 제거");
+  
+    PrintSubSection("16.1 front값 제거");
+    {
+        List<int> l;
+        l.push_back(1);
+        l.push_back(2);
+        l.push_back(3);
+        
+        l.remove(1);
+        
+        AssertTest(l.size() == 2, "remove 후 크기 감소");
+        
+        auto it = l.begin();
+        AssertTest(*it == 2, "첫 번째 요소");
+        ++it;
+        AssertTest(*it == 3, "두 번째 요소");
+    }
+
+    PrintSubSection("16.2 단일 값 제거");
     {
         List<int> l;
         l.push_back(1);
@@ -879,7 +896,7 @@ void Test16_RemoveOperation() {
         AssertTest(*it == 3, "두 번째 요소");
     }
     
-    PrintSubSection("16.2 중복 값 모두 제거");
+    PrintSubSection("16.3 중복 값 모두 제거");
     {
         List<int> l;
         l.push_back(1);
@@ -898,7 +915,7 @@ void Test16_RemoveOperation() {
         AssertTest(*it == 3, "3");
     }
     
-    PrintSubSection("16.3 존재하지 않는 값 제거");
+    PrintSubSection("16.4 존재하지 않는 값 제거");
     {
         List<int> l;
         l.push_back(1);
@@ -909,7 +926,7 @@ void Test16_RemoveOperation() {
         AssertTest(l.size() == 2, "존재하지 않는 값 제거 시 크기 불변");
     }
     
-    PrintSubSection("16.4 모든 요소 제거");
+    PrintSubSection("16.5 모든 요소 제거");
     {
         List<int> l;
         l.push_back(5);
@@ -1344,7 +1361,7 @@ void Test23_ProblemSolving() {
 void Test24_PerformanceComparison() {
     PrintSection("테스트 24: 종합 성능 비교 (List vs std::list)");
     
-    const int N = 100000;
+    const int N = 5000000;
     
     cout << "  데이터 개수: " << N << "개" << endl << endl;
     
