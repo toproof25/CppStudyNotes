@@ -202,7 +202,31 @@ List<T>::List(const List<T>& other) : _capacity(other._capacity)
   try
   {
     // front를 먼저 지정하지 않으면 while에서 prevNode==nullptr로 조건을 검사해야함
-    // 분기 예측으로 성능 저하를 예상?
+    // 분기 예측으로 성능 저하를 예상?하여 작성
+
+    // 이 경우 frontNode를 먼저 할당하지 않아도 되지만, 반복문 내 초기값 확인하는 부분이 존재
+    // 이 정도는 컴파일러에서 분기 예측에 영향이 없을 정도로 수정해줄 수도 있을 듯
+    /*
+    while (start != nullptr)
+    {
+
+      currentNode = alloc.allocate(1);
+      new (currentNode) Node(start->value);
+
+      currentNode->pre_node = prevNode;
+      if (prevNode == nullptr) 
+      {
+        start = start->next_node;
+        contiune;
+      }
+      prevNode->next_node = currentNode;
+
+      prevNode = currentNode;
+
+      start = start->next_node;
+    }
+    */
+
     frontNode = alloc.allocate(1);
     new (frontNode) Node(start->value);
 
