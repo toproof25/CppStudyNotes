@@ -3,6 +3,17 @@
  * @date 2026-01-20
  * @author toproof (kmnlmn123@gmail.com)
  * @brief Raw Memory를 이용한 Doubly Linked List 구조의 Class 구현
+ * @note
+ * 1. allocator, placement new를 이용하여 메모리 관리
+ * 2. Doubly Linked List 구조로 앞, 뒤, 중간에 모든 요소를 삽입, 제거 가능
+ * 3. iterator, const_iterator, reverse_iterator 구조체와 각 전위/후위, *, ==, != 연산자 오버라이드를 이용하여 타 STL 함수와 호환
+ * 4. 기존 std::list와 같은 기능을 구현
+ * 5. 복사 생성자에서 복사 시 오류가 발생하는 경우 복사한 모든 노드의 소멸과 메모리 공간 회수를 구현하여 예외 안전성을 높임
+ * 
+ * @todo 
+ * - 유니폼 초기화 생성자 구현
+ * - (size_t, T) 를 이용하여 초기화하는 생성자 구현
+ * - resize(), reserve(), sort(), split() 함수 구현
  */
 
 #pragma once
@@ -13,7 +24,12 @@
 #include <utility>      
 #include <type_traits>  
 #include <stdexcept>    
+#include <iterator>
 
+
+/**
+ * @brief Doubly Linked List 클래스
+ */
 template <typename T>
 class List
 {
@@ -21,8 +37,8 @@ private:
   struct Node
   {
     T value;
-    Node* next_node = nullptr;
-    Node* pre_node  = nullptr;
+    Node* next_node = nullptr; ///< 다음 노드를 가리키는 포인터
+    Node* pre_node  = nullptr; ///< 이전 노드를 가리키는 포인터
 
     Node(const T& v) : value(v) {}
     Node(T&& v) : value(std::move(v)) {}
@@ -32,8 +48,8 @@ private:
   };
 
   size_t _capacity;
-  Node* frontNode = nullptr;
-  Node* backNode  = nullptr;
+  Node* frontNode = nullptr; ///< List의 첫 노트를 가리키는 포인터
+  Node* backNode  = nullptr; ///< List의 마지막 노드를 가리키는 포인터
 
 public:
 
@@ -50,23 +66,23 @@ public:
 
     ListIterator(const _ptr& _it) : it(_it) {};
 
-    ListIterator<_ptr, _ref>& operator++()   
+    inline ListIterator<_ptr, _ref>& operator++()   
     { 
       it = it->next_node; 
       return *this; 
     }
-    ListIterator<_ptr, _ref> operator++(int) 
+    inline ListIterator<_ptr, _ref> operator++(int) 
     { 
       ListIterator<_ptr, _ref> temp = *this; 
       ++*this; 
       return temp; }
 
-    ListIterator<_ptr, _ref>& operator--()   
+    inline ListIterator<_ptr, _ref>& operator--()   
     { 
       it = it->pre_node; 
       return *this; 
     }
-    ListIterator<_ptr, _ref> operator--(int) 
+    inline ListIterator<_ptr, _ref> operator--(int) 
     { 
       ListIterator<_ptr, _ref> temp = *this; 
       --*this; 
@@ -140,37 +156,104 @@ public:
   List() : _capacity(0) {}
   ~List();
 
+  /**
+   * @brief List other 객체의 모든 요소를 순회하여 요소를 복사하는 복사 생성자입니다 
+   * @param other 복사하고자 하는 List 객체
+   * @note 복사 중 예외가 발생하는 경우 catch에서 생성했던 모든 노드를 소멸하고 메모리 공간을 회수하여 메모리 누수를 방지 
+   */
   List(const List<T>& other);
   List(List<T>&& other) noexcept;
+
+  /**
+   * @brief =연산자를 통해 복사/이동을 수행하는 통합 대입 연산자
+   * @param other 복사/이동하고자 하는 List 객체
+   * @return 연쇄적으로 연산되도록 반환 복사/이동된 자신을 반환하여 
+   * @note List<T> other는 일반적으로 복사 생성자가 호출되어 정의되나 std::move를 사용 시 이동 생성자가 호출됩니다
+   * - `l = l2` -> 복사 생성자
+   * - `l = std::move(l2)` -> 이동 생성자
+   * 하나의 =연산자 오버라이드를 통해 복사와 이동의 이점을 누리는 통합 대입 연산자로 구현
+   */
   List<T>& operator=(List<T> other);
 
-  T& front() { return frontNode->value; }
-  T& back()  { return backNode->value; }
-  size_t size() { return _capacity; }
+  T& front()    { return frontNode->value; }
+  T& back()     { return backNode->value;  }
+  size_t size() const { return _capacity;        }
+  bool empty() const  { return (_capacity == 0); }
 
+  /**
+   * @brief 특정 값을 맨 앞에 삽입하는 함수
+   * @param value 삽입할 값
+   */
   void push_front(const T& value);
   void push_front(T&& value);
 
+  /**
+   * @brief 특정 값을 맨 뒤에 삽입하는 함수
+   * @param value 삽입할 값
+   */
   void push_back(const T& value);
   void push_back(T&& value);
 
+  /**
+   * @brief 생정자 인자를 받아 내부에서 맨 앞에 객체를 생성하는 함수
+   * @param args 타입의 생성자 인자들
+   */
   template <typename... Args>
   void emplace_front(Args&& ...args);
 
+  /**
+   * @brief 생정자 인자를 받아 내부에서 맨 뒤에 객체를 생성하는 함수
+   * @param args 타입의 생성자 인자들
+   */
   template <typename... Args>
   void emplace_back(Args&& ...args);
 
+  /**
+   * @brief 맨 앞 요소를 제거하는 함수
+   * @throw 빈 리스트에서 호출 시 out_of_range 예외를 던집니다
+   * @warning 빈 리스트에서 호출할 시 예외가 발생합니다
+   */
   void pop_front();
+
+  /**
+   * @brief 맨 뒤 요소를 제거하는 함수
+   * @throw 빈 리스트에서 호출 시 out_of_range 예외를 던집니다
+   * @warning 빈 리스트에서 호출할 시 예외가 발생합니다
+   */
   void pop_back();
 
+  /**
+   * @brief 특정 위치에 객체를 삽입합니다
+   * @param _iterator 요소를 삽입할 위치의 반복자 (해당 위치에 삽입됩니다)
+   * @param value 삽입할 객체
+   * @return 삽입된 위치의 반복자를 반환합니다
+   * @note 삽입 위치가 맨 앞, 맨 뒤인 경우 push_front(), push_back()을 호출하여 삽입합니다
+   */
   iterator insert(iterator _iterator, const T& value);
   iterator insert(iterator _iterator, T&& value);
 
+  /**
+   * @brief 생성자 인자를 받아 특정 위치에 객체를 삽입합니다
+   * @param _iterator 요소를 삽입할 위치의 반복자 (해당 위치에 삽입됩니다)
+   * @param args 삽입할 객체의 생성자 인자
+   * @return 삽입된 위치의 반복자를 반환합니다
+   * @note 삽입 위치가 맨 앞, 맨 뒤인 경우 emplace_front(), emplace_back()을 호출하여 삽입합니다
+   */
   template <typename... Args>
   iterator emplace(iterator _iterator, Args&& ...args);
 
+  /**
+   * @brief 특정 위치의 객체를 제거합니다
+   * @param _iterator 제거할 요소의 반복자
+   * @return 제거된 위치의 다음 반복자를 반환합니다
+   * @note 제거 위치가 맨 앞, 맨 뒤인 경우 pop_front(), pop_back()을 호출하여 제거합니다
+   */
   iterator erase(iterator _iterator);
 
+  /**
+   * @brief 요소를 순회하며 특정 객체와 같은 객체를 제어합니다 
+   * @param value 제거할 객체
+   */
   void remove(const T& value);
 
   /**
@@ -215,7 +298,7 @@ List<T>::~List()
 template <typename T>
 List<T>::List(const List<T>& other) : _capacity(other._capacity)
 {
-  if (_capacity == 0) 
+  if (empty()) 
     return;
 
   std::allocator<Node> alloc;
@@ -269,7 +352,7 @@ template <typename T>
 List<T>::List(List<T>&& other) noexcept : frontNode(other.frontNode), backNode(other.backNode), _capacity(other._capacity)
 {
   other.frontNode = nullptr;
-  other.backNode = nullptr;
+  other.backNode  = nullptr;
   other._capacity = 0;
 }
 
@@ -433,6 +516,9 @@ void List<T>::emplace_back(Args&& ...args)
 template <typename T>
 void List<T>::pop_front()
 {
+  if (empty())
+    throw std::out_of_range("Error pop_front(): 리스트 내 객체가 없습니다");
+
   std::allocator<Node> alloc;
   
   if (frontNode->next_node == nullptr)
@@ -459,6 +545,9 @@ void List<T>::pop_front()
 template <typename T>
 void List<T>::pop_back()
 {
+  if (empty())
+    throw std::out_of_range("Error pop_back(): 리스트 내 객체가 없습니다");
+
   std::allocator<Node> alloc;
   
   if (backNode->pre_node == nullptr)
@@ -491,7 +580,7 @@ typename List<T>::iterator List<T>::insert(iterator _iterator, const T& value)
     return iterator(frontNode);
   }
   
-  if (end() == _iterator.it)
+  if (end() == _iterator)
   {
     push_back(value);
     return iterator(backNode);
@@ -524,7 +613,7 @@ typename List<T>::iterator List<T>::insert(iterator _iterator, T&& value)
     return iterator(frontNode);
   }
   
-  if (end() == _iterator.it)
+  if (end() == _iterator)
   {
     push_back(value);
     return iterator(backNode);
@@ -559,7 +648,7 @@ typename List<T>::iterator List<T>::emplace(iterator _iterator, Args&& ...args)
     return iterator(frontNode);
   }
   
-  if (end() == _iterator.it)
+  if (end() == _iterator)
   {
     emplace_back(std::forward<Args>(args)...);
     return iterator(backNode);
@@ -587,6 +676,8 @@ typename List<T>::iterator List<T>::emplace(iterator _iterator, Args&& ...args)
 template <typename T> 
 typename List<T>::iterator List<T>::erase(iterator _iterator)
 {
+  if (empty()) throw std::out_of_range("Error erase(): 빈 리스트에서 제거할 수 없습니다");
+
   Node* deleteNode = _iterator.it;
   iterator nextIterator = ++_iterator;
 
@@ -596,7 +687,7 @@ typename List<T>::iterator List<T>::erase(iterator _iterator)
     return nextIterator;
   }
 
-  if (backNode == deleteNode)
+  if (deleteNode == nullptr)
   {
     pop_back();
     return nextIterator;
@@ -632,7 +723,6 @@ void List<T>::remove(const T& value)
     if (currentNode->value == value)
     {
         preNode  = currentNode->pre_node;
-        nextNode = currentNode->next_node;
 
         if (preNode) preNode->next_node = nextNode;
         else frontNode = currentNode->next_node;
