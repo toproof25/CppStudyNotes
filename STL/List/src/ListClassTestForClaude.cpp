@@ -1194,62 +1194,31 @@ void Test21_ComplexTypes() {
 void Test22_AlgorithmCompatibility() {
     PrintSection("테스트 22: STL 알고리즘 호환성");
     
-    PrintSubSection("22.1 std::sort (list는 자체 sort 사용)");
+    PrintSubSection("22.1 std::find");
     {
         List<int> l;
-        l.push_back(5);
-        l.push_back(2);
-        l.push_back(8);
-        l.push_back(1);
-        l.push_back(9);
-        
-        // List의 iterator를 사용하여 vector로 복사 후 정렬
-        std::vector<int> vec;
-        for (auto it = l.begin(); it != l.end(); ++it) {
-            vec.push_back(*it);
-        }
-        std::sort(vec.begin(), vec.end());
-        
-        AssertTest(vec[0] == 1 && vec[1] == 2 && vec[2] == 5, "정렬 결과 확인");
-    }
-    
-    PrintSubSection("22.2 std::find (수동 구현)");
-    {
-        List<int> l;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) 
             l.push_back(i);
-        }
         
-        // 수동 find 구현
-        auto it = l.begin();
+        auto f = std::find(l.begin(), l.end(), 5);
         bool found = false;
-        for (; it != l.end(); ++it) {
-            if (*it == 5) {
-                found = true;
-                break;
-            }
-        }
+        if (f != l.end()) found = true;
         
-        AssertTest(found && *it == 5, "find 동작 확인");
+        AssertTest(found && *f == 5, "find 동작 확인");
     }
     
-    PrintSubSection("22.3 std::accumulate (수동 구현)");
+    PrintSubSection("22.2 std::accumulate");
     {
         List<int> l;
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 5; i++) 
             l.push_back(i);
-        }
         
-        // 수동 accumulate 구현
-        int sum = 0;
-        for (auto it = l.begin(); it != l.end(); ++it) {
-            sum += *it;
-        }
+        int sum = std::accumulate(l.begin(), l.end(), 0);
         
         AssertTest(sum == 15, "accumulate 동작 확인");
     }
     
-    PrintSubSection("22.4 값 카운트");
+    PrintSubSection("22.3 std::count 값 카운트");
     {
         List<int> l;
         l.push_back(1);
@@ -1258,11 +1227,8 @@ void Test22_AlgorithmCompatibility() {
         l.push_back(3);
         l.push_back(2);
         
-        int count = 0;
-        for (auto it = l.begin(); it != l.end(); ++it) {
-            if (*it == 2) count++;
-        }
-        
+        int count = std::count(l.begin(), l.end(), 2);
+
         AssertTest(count == 3, "값 카운트 호환");
     }
 }
