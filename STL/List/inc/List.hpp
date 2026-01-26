@@ -47,7 +47,7 @@ private:
     Node(Args&& ...args) : value(std::forward<Args>(args)...) {}
   };
 
-  size_t _capacity;
+  size_t _size;
   Node* frontNode = nullptr; ///< List의 첫 노트를 가리키는 포인터
   Node* backNode  = nullptr; ///< List의 마지막 노드를 가리키는 포인터
 
@@ -153,7 +153,7 @@ public:
 
 
 public:
-  List() : _capacity(0) {}
+  List() : _size(0) {}
   ~List();
 
   /**
@@ -165,20 +165,20 @@ public:
   List(List<T>&& other) noexcept;
 
   /**
-   * @brief =연산자를 통해 복사/이동을 수행하는 통합 대입 연산자
+   * @brief =연산자를 통해 복사/이동을 수행하는 복사 대입 연산자
    * @param other 복사/이동하고자 하는 List 객체
    * @return 연쇄적으로 연산되도록 반환 복사/이동된 자신을 반환하여 
    * @note List<T> other는 일반적으로 복사 생성자가 호출되어 정의되나 std::move를 사용 시 이동 생성자가 호출됩니다
    * - `l = l2` -> 복사 생성자
    * - `l = std::move(l2)` -> 이동 생성자
-   * 하나의 =연산자 오버라이드를 통해 복사와 이동의 이점을 누리는 통합 대입 연산자로 구현
+   * 하나의 =연산자 오버라이드를 통해 복사와 이동의 이점을 누리는 복사 대입 연산자로 구현
    */
   List<T>& operator=(List<T> other);
 
   T& front()    { return frontNode->value; }
   T& back()     { return backNode->value;  }
-  size_t size() const { return _capacity;        }
-  bool empty() const  { return (_capacity == 0); }
+  size_t size() const { return _size;        }
+  bool empty() const  { return (_size == 0); }
 
   /**
    * @brief 특정 값을 맨 앞에 삽입하는 함수
@@ -296,7 +296,7 @@ List<T>::~List()
 
 
 template <typename T>
-List<T>::List(const List<T>& other) : _capacity(other._capacity)
+List<T>::List(const List<T>& other) : _size(other._size)
 {
   if (empty()) 
     return;
@@ -349,11 +349,11 @@ List<T>::List(const List<T>& other) : _capacity(other._capacity)
 }
 
 template <typename T>
-List<T>::List(List<T>&& other) noexcept : frontNode(other.frontNode), backNode(other.backNode), _capacity(other._capacity)
+List<T>::List(List<T>&& other) noexcept : frontNode(other.frontNode), backNode(other.backNode), _size(other._size)
 {
   other.frontNode = nullptr;
   other.backNode  = nullptr;
-  other._capacity = 0;
+  other._size = 0;
 }
 
 template <typename T>
@@ -361,7 +361,7 @@ List<T>& List<T>::operator=(List<T> other)
 {
   std::swap(frontNode, other.frontNode);
   std::swap(backNode, other.backNode);
-  std::swap(_capacity, other._capacity);
+  std::swap(_size, other._size);
   return *this;
 }
 
@@ -376,7 +376,7 @@ void List<T>::push_front(const T& value)
     frontNode = alloc.allocate(1);
     new (frontNode) Node(value);
     backNode = frontNode;
-    _capacity++;
+    _size++;
     return;
   }
 
@@ -387,7 +387,7 @@ void List<T>::push_front(const T& value)
   frontNode->pre_node = node;
   frontNode = node;
 
-  _capacity++;
+  _size++;
 }
 template <typename T>
 void List<T>::push_front(T&& value)
@@ -399,7 +399,7 @@ void List<T>::push_front(T&& value)
     frontNode = alloc.allocate(1);
     new (frontNode) Node(std::move(value));
     backNode = frontNode;
-    _capacity++;
+    _size++;
     return;
   }
 
@@ -410,7 +410,7 @@ void List<T>::push_front(T&& value)
   frontNode->pre_node = node;
   frontNode = node;
 
-  _capacity++;
+  _size++;
 }
 
 
@@ -424,7 +424,7 @@ void List<T>::push_back(const T& value)
     frontNode = alloc.allocate(1);
     new (frontNode) Node(value);
     backNode = frontNode;
-    _capacity++;
+    _size++;
     return;
   }
 
@@ -435,7 +435,7 @@ void List<T>::push_back(const T& value)
   backNode->next_node = node;
   backNode = node;
 
-  _capacity++;
+  _size++;
 }
 template <typename T>
 void List<T>::push_back(T&& value)
@@ -447,7 +447,7 @@ void List<T>::push_back(T&& value)
     frontNode = alloc.allocate(1);
     new (frontNode) Node(std::move(value));
     backNode = frontNode;
-    _capacity++;
+    _size++;
     return;
   }
 
@@ -458,7 +458,7 @@ void List<T>::push_back(T&& value)
   backNode->next_node = node;
   backNode = node;
   
-  _capacity++;
+  _size++;
 }
 
 
@@ -473,7 +473,7 @@ void List<T>::emplace_front(Args&& ...args)
     frontNode = alloc.allocate(1);
     new (frontNode) Node(std::forward<Args>(args)...);
     backNode = frontNode;
-    _capacity++;
+    _size++;
     return;
   }
 
@@ -484,7 +484,7 @@ void List<T>::emplace_front(Args&& ...args)
   frontNode->pre_node = node;
   frontNode = node;
 
-  _capacity++;
+  _size++;
 }
 
 template <typename T>
@@ -498,7 +498,7 @@ void List<T>::emplace_back(Args&& ...args)
     frontNode = alloc.allocate(1);
     new (frontNode) Node(std::forward<Args>(args)...);
     backNode = frontNode;
-    _capacity++;
+    _size++;
     return;
   }
 
@@ -509,7 +509,7 @@ void List<T>::emplace_back(Args&& ...args)
   backNode->next_node = node;
   backNode = node;
   
-  _capacity++;
+  _size++;
 }
 
 
@@ -527,7 +527,7 @@ void List<T>::pop_front()
     alloc.deallocate(frontNode, 1);
     frontNode = nullptr;
     backNode = nullptr;
-    _capacity--;
+    _size--;
     return;
   }
 
@@ -539,7 +539,7 @@ void List<T>::pop_front()
   std::destroy_at(deleteNode);
   alloc.deallocate(deleteNode, 1);
 
-  _capacity--;
+  _size--;
 }
 
 template <typename T>
@@ -556,7 +556,7 @@ void List<T>::pop_back()
     alloc.deallocate(backNode, 1);
     frontNode = nullptr;
     backNode = nullptr;
-    _capacity--;
+    _size--;
     return;
   }
 
@@ -568,7 +568,7 @@ void List<T>::pop_back()
   std::destroy_at(deleteNode);
   alloc.deallocate(deleteNode, 1);
 
-  _capacity--;
+  _size--;
 }
 
 template <typename T>
@@ -599,7 +599,7 @@ typename List<T>::iterator List<T>::insert(iterator _iterator, const T& value)
   node->next_node = currentNode;
 
   currentNode->pre_node = node;
-  _capacity++;
+  _size++;
 
   return iterator(node);
 }
@@ -632,7 +632,7 @@ typename List<T>::iterator List<T>::insert(iterator _iterator, T&& value)
   node->next_node = currentNode;
 
   currentNode->pre_node = node;
-  _capacity++;
+  _size++;
 
   return iterator(node);
 }
@@ -667,7 +667,7 @@ typename List<T>::iterator List<T>::emplace(iterator _iterator, Args&& ...args)
   node->next_node = currentNode;
 
   currentNode->pre_node = node;
-  _capacity++;
+  _size++;
 
   return iterator(node);
 }
@@ -687,7 +687,7 @@ typename List<T>::iterator List<T>::erase(iterator _iterator)
     return nextIterator;
   }
 
-  if (deleteNode == nullptr)
+  if (deleteNode == backNode)
   {
     pop_back();
     return nextIterator;
@@ -703,7 +703,7 @@ typename List<T>::iterator List<T>::erase(iterator _iterator)
   std::destroy_at(deleteNode);
   alloc.deallocate(deleteNode, 1);
 
-  _capacity--;
+  _size--;
 
   return nextIterator;
 }
@@ -732,7 +732,7 @@ void List<T>::remove(const T& value)
 
         std::destroy_at(currentNode);
         alloc.deallocate(currentNode, 1);
-        _capacity--;
+        _size--;
     }
     currentNode = nextNode;
   }
