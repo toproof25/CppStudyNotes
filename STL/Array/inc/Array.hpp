@@ -26,7 +26,7 @@
  * 
  */
 
-#pragma ones
+#pragma once
 #include <stdexcept>
 
 template <typename T, size_t capacity>
@@ -79,13 +79,13 @@ const T& Array<T, capacity>::operator[](size_t index) const noexcept { return ar
 template <typename T, size_t capacity>
 T& Array<T, capacity>::at(size_t index)
 {
-  if (index < 0 || index >= capacity) throw std::out_of_range("Error: out_of_range 배열 범위를 벗어났습니다...");
+  if (index >= capacity) throw std::out_of_range("Error: out_of_range 배열 범위를 벗어났습니다...");
   return array[index];
 }
 template <typename T, size_t capacity>
 const T& Array<T, capacity>::at(size_t index) const
 {
-  if (index < 0 || index >= capacity) throw std::out_of_range("Error: out_of_range 배열 범위를 벗어났습니다...");
+  if (index >= capacity) throw std::out_of_range("Error: out_of_range 배열 범위를 벗어났습니다...");
   return array[index];
 }
 
