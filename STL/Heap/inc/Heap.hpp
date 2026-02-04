@@ -9,8 +9,6 @@
  * 
  */
 
-
-
 #pragma once
 
 #include <iostream>
@@ -79,7 +77,7 @@ void Heap<T, _g>::push(T&& data)
 
   if constexpr (_g == 0)
   {
-    while(currentIndex > 0 && vector[currentIndex] < vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] <= vector[parantIndex])
     {
       T temp = std::move(vector[currentIndex]);
       vector[currentIndex] = std::move(vector[parantIndex]);
@@ -91,7 +89,7 @@ void Heap<T, _g>::push(T&& data)
   }
   else
   {
-    while(currentIndex > 0 && vector[currentIndex] > vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] >= vector[parantIndex])
     {
       T temp = std::move(vector[currentIndex]);
       vector[currentIndex] = std::move(vector[parantIndex]);
@@ -116,7 +114,7 @@ void Heap<T, _g>::push(const T& data)
 
   if constexpr (_g == 0)
   {
-    while(currentIndex > 0 && vector[currentIndex] < vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] <= vector[parantIndex])
     {
       T temp = std::move(vector[currentIndex]);
       vector[currentIndex] = std::move(vector[parantIndex]);
@@ -128,7 +126,7 @@ void Heap<T, _g>::push(const T& data)
   }
   else
   {
-    while(currentIndex > 0 && vector[currentIndex] > vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] >= vector[parantIndex])
     {
       T temp = std::move(vector[currentIndex]);
       vector[currentIndex] = std::move(vector[parantIndex]);
@@ -167,9 +165,9 @@ void Heap<T, _g>::pop()
     if (vSize < r_child)
       min_child = l_child;
     else
-      min_child = (vector[l_child] < vector[r_child]) ? l_child : r_child;
+      min_child = (vector[l_child] <= vector[r_child]) ? l_child : r_child;
 
-    while (vSize >= min_child && vector[currentIndex] > vector[min_child] )
+    while (vSize >= min_child && vector[currentIndex] >= vector[min_child] )
     {
       temp = std::move(vector[min_child]);
       vector[min_child] = std::move(vector[currentIndex]);
@@ -182,7 +180,7 @@ void Heap<T, _g>::pop()
       if (vSize < r_child)
         min_child = l_child;
       else
-        min_child = (vector[l_child] < vector[r_child]) ? l_child : r_child;
+        min_child = (vector[l_child] <= vector[r_child]) ? l_child : r_child;
     }
   }
   else
@@ -190,9 +188,9 @@ void Heap<T, _g>::pop()
     if (vSize < r_child)
       min_child = l_child;
     else
-      min_child = (vector[l_child] > vector[r_child]) ? l_child : r_child;
+      min_child = (vector[l_child] >= vector[r_child]) ? l_child : r_child;
 
-    while (vSize >= min_child && vector[currentIndex] < vector[min_child] )
+    while (vSize >= min_child && vector[currentIndex] <= vector[min_child] )
     {
       temp = std::move(vector[min_child]);
       vector[min_child] = std::move(vector[currentIndex]);
@@ -205,7 +203,7 @@ void Heap<T, _g>::pop()
       if (vSize < r_child)
         min_child = l_child;
       else
-        min_child = (vector[l_child] < vector[r_child]) ? l_child : r_child;
+        min_child = (vector[l_child] <= vector[r_child]) ? l_child : r_child;
     }
   }
 
