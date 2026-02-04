@@ -54,6 +54,7 @@ public:
   const T& top() const { return vector.front(); }
 
   size_t size() { return vector.size(); }
+  const size_t size() const { return vector.size(); }
   bool empty() { return vector.size() == 0; }
 
   
@@ -70,8 +71,17 @@ public:
 template <typename T, int _g>
 void Heap<T, _g>::push(T&& data)
 {
-  vector.push_back(std::forward<T>(data));
+  try
+  {
+    vector.push_back(std::forward<T>(data));
+  }
+  catch (const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+    throw;
+  }
   
+
   size_t currentIndex = vector.size()-1;
   size_t parantIndex = (currentIndex - 1) / 2;
 
@@ -107,7 +117,14 @@ void Heap<T, _g>::push(T&& data)
 template <typename T, int _g>
 void Heap<T, _g>::push(const T& data)
 {
-  vector.push_back(data);
+  try
+  {
+    vector.push_back(data);
+  }
+  catch (const std::exception &e)
+  {
+    throw;
+  }
   
   size_t currentIndex = vector.size()-1;
   size_t parantIndex = (currentIndex - 1) / 2;
@@ -203,7 +220,7 @@ void Heap<T, _g>::pop()
       if (vSize < r_child)
         min_child = l_child;
       else
-        min_child = (vector[l_child] <= vector[r_child]) ? l_child : r_child;
+        min_child = (vector[l_child] >= vector[r_child]) ? l_child : r_child;
     }
   }
 
