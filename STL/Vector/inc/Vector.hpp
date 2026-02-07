@@ -157,7 +157,9 @@ class Vector
     const_iterator cend() const { return vectorArray + _size; }
 
     size_t size() { return _size; }
+    size_t size() const { return _size; }
     size_t capacity() { return _capacity; }
+    size_t capacity() const { return _capacity; }
 };
 
 template <typename T>
