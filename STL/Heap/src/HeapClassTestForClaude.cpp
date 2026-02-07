@@ -277,7 +277,7 @@ bool VerifyMinHeapProperty(Heap<T, 0>& heap) {
     
     // 추출된 요소들이 오름차순인지 확인
     for (size_t i = 1; i < extracted.size(); ++i) {
-        if (extracted[i] < extracted[i-1]) {
+        if (extracted[i] <= extracted[i-1]) {
             return false;
         }
     }
