@@ -6,13 +6,15 @@
  * - 이전에 구현한 Vector Class를 이용하여 Heap Class의 요소 저장을 관리하여 Zero-Overhead 원칙을 준수
  * - Vector Class에서 생성과 소멸의 책임을 가져 RAII와 예외 안정성을 보장함
  * - 배열 구조로 Heap을 구현하여 오버헤드가 적고 빠근 접근이 가능하다
- * 
+ * @todo
+ * - _g로 최소 힙과 최대 힙 구분이 아닌 Compare로 구분하도록 수정 
  */
 
 #pragma once
 
 #include <iostream>
 #include <memory>
+#include <utility>
 #include "../../Vector/inc/Vector.hpp"
 
 /**
@@ -54,8 +56,9 @@ public:
   const T& top() const { return vector.front(); }
 
   size_t size() { return vector.size(); }
-  const size_t size() const { return vector.size(); }
+  size_t size() const { return vector.size(); }
   bool empty() { return vector.size() == 0; }
+  bool empty() const { return vector.size() == 0; }
 
   
   /** @brief 테스트용 출력 함수 */
@@ -71,42 +74,33 @@ public:
 template <typename T, int _g>
 void Heap<T, _g>::push(T&& data)
 {
-  try
-  {
-    vector.push_back(std::forward<T>(data));
-  }
-  catch (const std::exception& e)
-  {
-    std::cerr << e.what() << '\n';
-    throw;
-  }
-  
+  vector.push_back(std::forward<T>(data));
 
   size_t currentIndex = vector.size()-1;
-  size_t parantIndex = (currentIndex - 1) / 2;
+  size_t parentIndex = (currentIndex - 1) / 2;
 
   if constexpr (_g == 0)
   {
-    while(currentIndex > 0 && vector[currentIndex] <= vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] <= vector[parentIndex])
     {
       T temp = std::move(vector[currentIndex]);
-      vector[currentIndex] = std::move(vector[parantIndex]);
-      vector[parantIndex] = std::move(temp);
+      vector[currentIndex] = std::move(vector[parentIndex]);
+      vector[parentIndex] = std::move(temp);
       
-      currentIndex = parantIndex;
-      parantIndex = (currentIndex - 1) / 2;
+      currentIndex = parentIndex;
+      parentIndex = (currentIndex - 1) / 2;
     }
   }
   else
   {
-    while(currentIndex > 0 && vector[currentIndex] >= vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] >= vector[parentIndex])
     {
       T temp = std::move(vector[currentIndex]);
-      vector[currentIndex] = std::move(vector[parantIndex]);
-      vector[parantIndex] = std::move(temp);
+      vector[currentIndex] = std::move(vector[parentIndex]);
+      vector[parentIndex] = std::move(temp);
       
-      currentIndex = parantIndex;
-      parantIndex = (currentIndex - 1) / 2;
+      currentIndex = parentIndex;
+      parentIndex = (currentIndex - 1) / 2;
     }
   }
 
@@ -117,40 +111,33 @@ void Heap<T, _g>::push(T&& data)
 template <typename T, int _g>
 void Heap<T, _g>::push(const T& data)
 {
-  try
-  {
-    vector.push_back(data);
-  }
-  catch (const std::exception &e)
-  {
-    throw;
-  }
+  vector.push_back(data);
   
   size_t currentIndex = vector.size()-1;
-  size_t parantIndex = (currentIndex - 1) / 2;
+  size_t parentIndex = (currentIndex - 1) / 2;
 
   if constexpr (_g == 0)
   {
-    while(currentIndex > 0 && vector[currentIndex] <= vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] <= vector[parentIndex])
     {
       T temp = std::move(vector[currentIndex]);
-      vector[currentIndex] = std::move(vector[parantIndex]);
-      vector[parantIndex] = std::move(temp);
+      vector[currentIndex] = std::move(vector[parentIndex]);
+      vector[parentIndex] = std::move(temp);
       
-      currentIndex = parantIndex;
-      parantIndex = (currentIndex - 1) / 2;
+      currentIndex = parentIndex;
+      parentIndex = (currentIndex - 1) / 2;
     }
   }
   else
   {
-    while(currentIndex > 0 && vector[currentIndex] >= vector[parantIndex])
+    while(currentIndex > 0 && vector[currentIndex] >= vector[parentIndex])
     {
       T temp = std::move(vector[currentIndex]);
-      vector[currentIndex] = std::move(vector[parantIndex]);
-      vector[parantIndex] = std::move(temp);
+      vector[currentIndex] = std::move(vector[parentIndex]);
+      vector[parentIndex] = std::move(temp);
       
-      currentIndex = parantIndex;
-      parantIndex = (currentIndex - 1) / 2;
+      currentIndex = parentIndex;
+      parentIndex = (currentIndex - 1) / 2;
     }
   }
 
