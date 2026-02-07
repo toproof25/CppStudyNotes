@@ -5,9 +5,9 @@
  * @brief
  * - 이전에 구현한 Vector Class를 이용하여 Heap Class의 요소 저장을 관리하여 Zero-Overhead 원칙을 준수
  * - Vector Class에서 생성과 소멸의 책임을 가져 RAII와 예외 안정성을 보장함
- * - 배열 구조로 Heap을 구현하여 오버헤드가 적고 빠근 접근이 가능하다
+ * - 배열 구조로 Heap을 구현하여 오버헤드가 적고 빠른 접근이 가능하다
  * @todo
- * - _g로 최소 힙과 최대 힙 구분이 아닌 Compare로 구분하도록 수정 
+ * - _g 타입으로 최소 힙, 최대 힙 구분을 Compare로 변경
  */
 
 #pragma once
